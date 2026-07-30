@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:16
+    container_name: tontinesafe-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tontinesafe
+      POSTGRES_USER: tontinesafe
+      POSTGRES_PASSWORD: tontinesafe
+    ports:
+      - "5432:5432"
+    volumes:
+      - tontinesafe_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: tontinesafe-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@tontinesafe.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
+volumes:
+  tontinesafe_data:
