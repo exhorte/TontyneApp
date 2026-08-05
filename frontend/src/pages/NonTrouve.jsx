@@ -9,7 +9,7 @@ export default function NonTrouve() {
       <EmptyState
         icone="boussole"
         titre="Page introuvable"
-        texte="L'adresse demandée ne correspond à aucune page de TontineSafe."
+        texte="L'adresse demandée ne correspond à aucune page de Tontyn."
         action={
           <Link className="btn btn--principal" to="/tableau-de-bord">
             Retour au tableau de bord

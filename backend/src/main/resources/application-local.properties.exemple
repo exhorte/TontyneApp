@@ -1,0 +1,31 @@
+# =====================================================================
+#  MODELE - profil "local"
+# =====================================================================
+#  Copiez ce fichier sous le nom application-local.properties
+#  (dans le meme dossier). Ce dernier est exclu du depot Git : il peut
+#  donc contenir vos adresses reelles sans qu'elles soient publiees.
+#
+#  Lancement du backend avec ce profil :
+#     mvn spring-boot:run "-Dspring-boot.run.profiles=h2,local"
+# =====================================================================
+
+# --- Adresses reelles des trois comptes -------------------------------
+app.comptes.admin.email=prenom.nom@exemple.com
+app.comptes.admin.nom=NOM
+app.comptes.admin.prenom=Prenom
+
+app.comptes.gestionnaire.email=deuxieme.adresse@exemple.com
+app.comptes.gestionnaire.nom=NOM
+app.comptes.gestionnaire.prenom=Prenom
+
+app.comptes.membre.email=troisieme.adresse@exemple.com
+app.comptes.membre.nom=NOM
+app.comptes.membre.prenom=Prenom
+
+# --- Compte expediteur -------------------------------------------------
+# L'adresse Gmail qui enverra les codes de verification.
+app.mail.from=votre.adresse@gmail.com
+
+# ATTENTION : ne placez PAS le mot de passe d'application ici.
+# Il doit rester dans la variable d'environnement MAIL_PASSWORD, afin de
+# n'etre ecrit dans aucun fichier du projet. Voir la procedure fournie.

@@ -5,6 +5,7 @@ import { normaliserErreur } from '../utils/errors.js'
 import Alert from '../components/Alert.jsx'
 import Button from '../components/Button.jsx'
 import Field from '../components/Field.jsx'
+import Icone from '../components/Icone.jsx'
 
 const FORMULAIRE_VIDE = {
   prenom: '',
@@ -80,14 +81,16 @@ export default function Register() {
   const erreurChamp = (nom) => erreursLocales[nom] || erreur?.champs?.[nom]
 
   return (
-    <div className="page-auth">
+    <div className="page-auth page-auth--inscription">
       <div className="carte-auth">
         <div className="carte-auth__marque">
-          <span className="logo-pastille" aria-hidden="true">TS</span>
-          <span className="carte-auth__titre">Créer un compte</span>
+          <span className="logo-pastille" aria-hidden="true">T</span>
+          <span>Tontyn</span>
         </div>
-        <p className="carte-auth__accroche">
-          Rejoignez TontineSafe pour suivre vos cotisations en toute sécurité
+        <h1 className="auth-titre">Rejoignez vos tontines en confiance.</h1>
+        <p className="auth-sous-titre">
+          Créez votre compte et suivez vos cotisations, vos cycles et vos reçus
+          en toute sécurité.
         </p>
 
         {erreur && (
@@ -169,7 +172,19 @@ export default function Register() {
           </Button>
         </form>
 
-        <p className="carte-auth__pied">
+        <div className="auth-atouts">
+          <span className="auth-atout">
+            <Icone nom="succes" taille={16} /> Traçabilité totale
+          </span>
+          <span className="auth-atout">
+            <Icone nom="succes" taille={16} /> Double authentification
+          </span>
+          <span className="auth-atout">
+            <Icone nom="succes" taille={16} /> Orange Money &amp; Wave
+          </span>
+        </div>
+
+        <p className="auth-pied">
           Vous avez déjà un compte ? <Link to="/login">Se connecter</Link>
         </p>
       </div>

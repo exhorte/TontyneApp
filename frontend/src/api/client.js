@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-export const CLE_TOKEN = 'tontinesafe.token'
+export const CLE_TOKEN = 'tontyn.token'
 
 /** Seule donnee persistee cote navigateur : le jeton JWT. */
 export const stockageToken = {

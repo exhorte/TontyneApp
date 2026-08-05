@@ -11,8 +11,8 @@ export default function RecuVue({ recu }) {
       <div className="recu__entete">
         <div>
           <div className="rangee" style={{ gap: 8 }}>
-            <span className="logo-pastille" aria-hidden="true">TS</span>
-            <strong style={{ fontSize: '1.05rem' }}>TontineSafe</strong>
+            <span className="logo-pastille" aria-hidden="true">T</span>
+            <strong style={{ fontSize: '1.05rem' }}>Tontyn</strong>
           </div>
           <p className="texte-discret" style={{ marginTop: 4 }}>
             Reçu de cotisation

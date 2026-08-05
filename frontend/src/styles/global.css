@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 /* =========================================================================
-   TontineSafe — feuille de style unique (design system leger, sans dependance)
+   Tontyn — feuille de style unique (design system leger, sans dependance)
    Palette sobre pensee pour des captures d'ecran de memoire / soutenance.
    ========================================================================= */
 
@@ -1466,3 +1466,489 @@ a { color: var(--bleu); }
   background: var(--surface);
   color: var(--gris-900);
 }
+
+/* =========================================================================
+   PAGES D'AUTHENTIFICATION — refonte
+   Connexion  : page pleine, epuree, sans carte (blanc dominant).
+   Inscription: modale centree sur fond d'application floute.
+   ========================================================================= */
+
+.page-auth {
+  min-height: 100vh;
+  background: var(--blanc);
+  display: grid;
+  place-items: center;
+  padding: 32px 24px;
+  position: relative;
+}
+
+/* Marque en haut a gauche de la page */
+.auth-marque {
+  position: fixed;
+  top: 28px;
+  left: 36px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--gris-900);
+  letter-spacing: -0.02em;
+  z-index: 2;
+}
+.auth-marque .logo-pastille { width: 30px; height: 30px; font-size: 13px; }
+
+/* --- Connexion : bloc central sans carte --------------------------------- */
+.page-auth--connexion .carte-auth {
+  width: 100%;
+  max-width: 420px;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+.auth-titre {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--gris-900);
+  margin: 0 0 8px;
+}
+.auth-sous-titre {
+  font-size: 15px;
+  color: var(--gris-700);
+  margin: 0 0 28px;
+}
+.page-auth .champ { margin-bottom: 16px; }
+.page-auth .champ__controle { height: 56px; font-size: 15px; }
+.page-auth .btn--principal { height: 56px; font-size: 16px; }
+
+.auth-pied {
+  margin-top: 20px;
+  font-size: 14px;
+  color: var(--gris-700);
+  text-align: center;
+}
+.auth-pied a { font-weight: 600; }
+
+/* --- Inscription : modale sur fond d'application floute ------------------ */
+.page-auth--inscription {
+  --fond-app: url('/fond-app.jpg');
+  background: linear-gradient(135deg, #eef2ff 0%, #f7f9fc 45%, #eaf0ff 100%);
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+.page-auth--inscription::before {
+  content: '';
+  position: absolute;
+  inset: -40px;
+  background-image: var(--fond-app, none);
+  background-size: cover;
+  background-position: center top;
+  filter: blur(16px) saturate(1.05);
+  transform: scale(1.06);
+  z-index: 0;
+}
+.page-auth--inscription::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(6px);
+  z-index: 0;
+}
+.page-auth--inscription > * { position: relative; z-index: 1; }
+
+.page-auth--inscription .carte-auth {
+  width: 100%;
+  max-width: 520px;
+  background: var(--blanc);
+  border: 1px solid var(--ligne);
+  border-radius: var(--rayon-modal);
+  box-shadow: 0 24px 60px rgba(10, 11, 13, 0.16);
+  padding: 40px;
+  text-align: center;
+}
+.page-auth--inscription .auth-titre,
+.page-auth--inscription .auth-sous-titre { text-align: center; }
+.page-auth--inscription .carte-auth__marque {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+/* les champs restent alignes a gauche dans une carte centree */
+.page-auth--inscription form { text-align: left; }
+
+/* --- Arguments de confiance (rangee de coches) --------------------------- */
+.auth-atouts {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--ligne);
+}
+.auth-atout {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13.5px;
+  color: var(--gris-700);
+}
+.auth-atout .icone { color: var(--bleu); }
+
+/* --- Indicateur d'etapes 2FA -------------------------------------------- */
+.etapes { margin-bottom: 24px; }
+.etape__puce {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--rayon-pill);
+  display: inline-grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--surface);
+  color: var(--gris-400);
+}
+.etape--active .etape__puce { background: var(--bleu); color: #fff; }
+.etape--faite .etape__puce { background: var(--bleu-fond); color: var(--bleu); }
+
+/* --- Encart de demonstration -------------------------------------------- */
+.encart-demo {
+  margin-top: 24px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: none;
+  border-radius: var(--rayon-sm);
+  font-size: 13px;
+  color: var(--gris-700);
+  text-align: left;
+}
+.encart-demo code {
+  background: var(--blanc);
+  padding: 1px 6px;
+  border-radius: 5px;
+  font-size: 12.5px;
+}
+
+/* =========================================================================
+   STYLE « RAMP » — relevé sur app.ramp.com/sign-in
+   Bloc 576 px · champs 56 px, bordure 1 px #6E6A68, angles droits
+   Titre 28 px / graisse 400 / interligne 32 px / -0.02em
+   ========================================================================= */
+
+:root {
+  --auth-largeur: 576px;
+  --champ-bordure: #6e6a68;      /* bordure relevee chez Ramp */
+  --champ-bordure-repos: #c9c7c5;/* variante adoucie au repos */
+}
+
+/* --- Bloc d'authentification -------------------------------------------- */
+.page-auth--connexion .carte-auth { max-width: var(--auth-largeur); }
+.page-auth--inscription .carte-auth { max-width: 640px; padding: 48px; }
+
+.auth-titre {
+  font-size: 28px;
+  font-weight: 400;          /* Ramp : titre en graisse normale */
+  line-height: 32px;
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+}
+.auth-sous-titre {
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--gris-700);
+  margin: 0 0 24px;
+}
+
+/* --- Champs : angles droits, bordure fine, hauteur 56 px ---------------- */
+.page-auth .champ { margin-bottom: 14px; }
+.page-auth .champ__label {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--gris-700);
+  margin-bottom: 6px;
+}
+.page-auth .champ__controle,
+.page-auth .champ select,
+.page-auth .champ textarea {
+  height: 56px;
+  border-radius: 0;
+  border: 1px solid var(--champ-bordure-repos);
+  padding: 7px 12px;
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 24px;
+  color: var(--gris-900);
+  background: var(--blanc);
+}
+.page-auth .champ__controle::placeholder { color: #8a8785; font-weight: 300; }
+.page-auth .champ__controle:hover { border-color: var(--champ-bordure); }
+.page-auth .champ__controle:focus {
+  border-color: var(--bleu);
+  box-shadow: 0 0 0 1px var(--bleu);   /* trait net, pas de halo diffus */
+}
+.page-auth .champ textarea { height: auto; min-height: 96px; }
+
+/* --- Bouton principal : pleine largeur, angles droits ------------------- */
+.page-auth .btn--principal,
+.page-auth .btn--secondaire {
+  height: 56px;
+  border-radius: 0;
+  font-size: 16px;
+  font-weight: 400;
+  padding: 0 24px;
+  width: 100%;
+}
+.page-auth .btn + .btn { margin-top: 12px; }
+
+/* --- Pied de page : lien souligne, comme chez Ramp ---------------------- */
+.auth-pied {
+  margin-top: 20px;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--gris-900);
+  text-align: left;
+}
+.page-auth--inscription .auth-pied { text-align: center; }
+.auth-pied a {
+  color: var(--gris-900);
+  font-weight: 400;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.auth-pied a:hover { color: var(--bleu); }
+
+/* --- Champs du reste de l'application : meme traitement de bordure ------ */
+.champ__controle,
+.champ select {
+  border-radius: 4px;
+  border-color: #d5d3d1;
+}
+.champ__controle:hover { border-color: #a9a6a4; }
+.champ__controle:focus {
+  border-color: var(--bleu);
+  box-shadow: 0 0 0 1px var(--bleu);
+}
+
+/* =========================================================================
+   ANGLES DROITS — application integrale du parti pris « Ramp »
+   Elements interactifs a 0, conteneurs legerement adoucis (8 px).
+   ========================================================================= */
+
+:root {
+  --rayon: 8px;        /* cartes, tableaux */
+  --rayon-sm: 4px;     /* petits conteneurs */
+  --rayon-pill: 4px;   /* neutralise les pilules */
+  --rayon-modal: 8px;
+}
+
+/* --- Elements interactifs : angles droits -------------------------------- */
+.btn,
+.btn--principal,
+.btn--secondaire,
+.btn--discret,
+.btn--danger,
+.btn--danger-plein,
+.btn--petit,
+.btn--grand,
+.champ__controle,
+.champ select,
+.champ textarea {
+  border-radius: 0;
+}
+
+/* --- Navigation laterale ------------------------------------------------- */
+.menu-lien { border-radius: 4px; }
+
+/* --- Badges et pastilles ------------------------------------------------- */
+.badge,
+.badge-role,
+.menu-lien__compteur,
+.etape__puce { border-radius: 4px; }
+
+/* --- Conteneurs ---------------------------------------------------------- */
+.carte,
+.stat,
+.tableau-conteneur,
+.alerte,
+.toast,
+.encart-demo { border-radius: 8px; }
+.modale { border-radius: 8px; }
+
+/* --- Boutons ronds : on garde le cercle uniquement pour l'identite -------- */
+.avatar { border-radius: 50%; }
+.logo-pastille { border-radius: 4px; }
+.modale__fermer,
+.toast__fermer { border-radius: 4px; }
+
+/* Pastilles d'icones : carre adouci plutot que rond */
+.icone-pastille { border-radius: 6px; }
+.icone-cercle { border-radius: 8px; }
+
+/* --- Champs : bordure Ramp sur toute l'application ----------------------- */
+.champ__controle,
+.champ select,
+.champ textarea {
+  border: 1px solid #c9c7c5;
+  font-weight: 400;
+}
+.champ__controle:hover,
+.champ select:hover { border-color: #6e6a68; }
+.champ__controle:focus,
+.champ select:focus {
+  border-color: var(--bleu);
+  box-shadow: 0 0 0 1px var(--bleu);
+}
+
+/* --- Focus clavier : trait net ------------------------------------------ */
+:focus-visible {
+  box-shadow: 0 0 0 2px var(--bleu);
+  border-radius: 0;
+}
+
+/* =========================================================================
+   LANGAGE VISUEL « RAMP » — applique a toute l'application
+   Releve sur ramp.com : --text-primary #0c0a08 · --border-primary #d2cecb
+   Titres en graisse 400 (jamais gras) · corps 14/20 · boutons rayon 6 px
+   ========================================================================= */
+
+:root {
+  /* Neutres chauds */
+  --gris-900: #0c0a08;
+  --gris-700: rgba(12, 10, 8, 0.62);
+  --gris-500: rgba(12, 10, 8, 0.62);
+  --gris-400: rgba(12, 10, 8, 0.45);
+  --gris-300: #d2cecb;
+  --gris-200: #e9e5e2;
+  --gris-100: #f6f4f2;
+  --surface: #f6f4f2;
+  --surface-hover: #efebe8;
+  --ligne: #e9e5e2;        /* separateurs discrets */
+  --bordure: #d2cecb;      /* bordures de champs et de cartes */
+}
+
+body { font-size: 14px; line-height: 20px; color: var(--gris-900); }
+
+/* --- Titres : graisse 400, interlignes serres ---------------------------- */
+h1, h2, h3, h4 { font-weight: 400; letter-spacing: -0.01em; }
+.entete-page h1,
+.entete-page__titre { font-size: 28px; line-height: 32px; font-weight: 400; }
+.entete-page__sous-titre { font-size: 14px; line-height: 20px; color: var(--gris-700); }
+.carte__entete h2,
+.carte__entete h3 { font-size: 20px; line-height: 24px; font-weight: 400; }
+
+/* --- Statistiques : grand chiffre en graisse 400 ------------------------- */
+.stat { border-color: var(--bordure); padding: 20px; }
+.stat__libelle {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--gris-400);
+}
+.stat__valeur { font-size: 28px; line-height: 32px; font-weight: 400; }
+.stat__detail { font-size: 13px; color: var(--gris-700); }
+
+/* --- Cartes -------------------------------------------------------------- */
+.carte { border-color: var(--bordure); border-radius: 8px; }
+.carte__entete { border-bottom-color: var(--ligne); }
+.tableau-conteneur { border-color: var(--bordure); border-radius: 8px; }
+
+/* --- Tableaux : texte 14 px, en-tetes discrets -------------------------- */
+.tableau thead th {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: var(--gris-400);
+  border-bottom-color: var(--ligne);
+  padding: 14px 20px;
+}
+.tableau tbody td {
+  font-size: 14px;
+  line-height: 20px;
+  padding: 16px 20px;
+  border-bottom-color: var(--ligne);
+}
+.cellule-principale { font-weight: 500; }
+.cellule-secondaire { font-size: 13px; color: var(--gris-700); }
+.tableau tbody tr:hover { background: #faf9f8; }
+
+/* --- Boutons : rayon 6 px, 14 px graisse 400 ---------------------------- */
+.btn {
+  height: 40px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 400;
+  padding: 0 16px;
+  gap: 8px;
+}
+.btn--petit { height: 32px; padding: 0 12px; font-size: 13px; }
+.btn--grand { height: 48px; font-size: 15px; }
+.groupe-actions .btn { height: 32px; padding: 0 12px; font-size: 13px; }
+.btn--secondaire { background: var(--blanc); border: 1px solid var(--bordure); color: var(--gris-900); }
+.btn--secondaire:not(:disabled):hover { background: var(--surface); }
+
+/* --- Navigation laterale : rayon adouci, graisse 400 -------------------- */
+.menu-lien { border-radius: 8px; font-size: 14px; font-weight: 400; height: 40px; }
+.menu-lien--actif, .menu-lien--actif:hover { font-weight: 500; }
+.menu-lateral__titre { font-weight: 500; letter-spacing: 0.03em; }
+
+/* --- Barre superieure ---------------------------------------------------- */
+.barre-sup { border-bottom-color: var(--ligne); }
+.barre-sup__marque { font-weight: 500; font-size: 16px; }
+.barre-sup__email { font-size: 13px; font-weight: 500; }
+.barre-sup__role { font-size: 12px; }
+
+/* --- Champs : bordure chaude -------------------------------------------- */
+.champ__label { font-size: 13px; font-weight: 500; }
+.champ__controle, .champ select, .champ textarea {
+  height: 40px;
+  font-size: 14px;
+  border-color: var(--bordure);
+  border-radius: 6px;
+}
+.champ__controle:hover { border-color: #b3aeaa; }
+.champ textarea { height: auto; min-height: 88px; }
+
+/* --- Badges : plus discrets --------------------------------------------- */
+.badge { font-size: 12px; font-weight: 500; padding: 4px 10px; }
+
+/* --- Onglets ------------------------------------------------------------- */
+.onglet { font-size: 14px; font-weight: 400; }
+.onglet--actif { font-weight: 500; }
+.onglets { border-bottom-color: var(--ligne); }
+
+/* --- Modales ------------------------------------------------------------- */
+.modale { border-radius: 12px; }
+.modale__entete { border-bottom-color: var(--ligne); }
+.modale__entete h2 { font-size: 20px; font-weight: 400; }
+.modale__pied { border-top-color: var(--ligne); }
+
+/* --- Etats vides --------------------------------------------------------- */
+.etat-vide__titre { font-size: 16px; font-weight: 500; }
+.etat-vide__texte { font-size: 14px; color: var(--gris-700); }
+
+/* --- Alertes / encarts --------------------------------------------------- */
+.alerte { border-radius: 8px; font-size: 14px; }
+.toast { border-radius: 8px; border-color: var(--bordure); }
+
+/* --- Tableaux : repartition des colonnes -------------------------------- */
+/* Repartition naturelle : on garantit seulement des minima de lisibilite. */
+.tableau { table-layout: auto; width: 100%; }
+.tableau-conteneur { overflow-x: auto; }
+.cellule-principale { min-width: 150px; }
+/* La colonne la plus large du tableau (message, libelle) ne se comprime pas */
+.tableau td:has(> .cellule-principale) { white-space: normal; }
+.tableau td { vertical-align: middle; }
+.tableau .groupe-actions { white-space: nowrap; }
+
+/* Masquer une description vide (evite le tiret orphelin) */
+.cellule-secondaire:empty { display: none; }

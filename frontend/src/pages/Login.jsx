@@ -69,28 +69,21 @@ export default function Login() {
   }
 
   return (
-    <div className="page-auth">
-      <div className="carte-auth">
-        <div className="carte-auth__marque">
-          <span className="logo-pastille" aria-hidden="true">TS</span>
-          <span className="carte-auth__titre">TontineSafe</span>
-        </div>
-        <p className="carte-auth__accroche">
-          Gestion sécurisée de vos tontines communautaires
-        </p>
+    <div className="page-auth page-auth--connexion">
+      <div className="auth-marque">
+        <span className="logo-pastille" aria-hidden="true">T</span>
+        <span>Tontyn</span>
+      </div>
 
-        {/* Indicateur d'etape du 2FA */}
-        <div className="etapes" aria-hidden="true">
-          <div className={`etape ${etape === 'identifiants' ? 'etape--active' : 'etape--faite'}`}>
-            <span className="etape__puce">{etape === 'otp' ? <Icone nom="succes" taille={16} /> : '1'}</span>
-            <span>Identifiants</span>
-          </div>
-          <span className="etapes__trait" />
-          <div className={`etape ${etape === 'otp' ? 'etape--active' : ''}`}>
-            <span className="etape__puce">2</span>
-            <span>Code de vérification</span>
-          </div>
-        </div>
+      <div className="carte-auth">
+        <h1 className="auth-titre">
+          {etape === 'identifiants' ? 'Bienvenue sur Tontyn' : 'Vérification'}
+        </h1>
+        <p className="auth-sous-titre">
+          {etape === 'identifiants'
+            ? 'Connectez-vous pour gérer vos tontines en toute sécurité.'
+            : 'Saisissez le code à six chiffres reçu par e-mail.'}
+        </p>
 
         {erreur && (
           <Alert type="erreur" champs={erreur.champs}>
@@ -167,17 +160,10 @@ export default function Login() {
           </form>
         )}
 
-        <p className="carte-auth__pied">
+        <p className="auth-pied">
           Pas encore de compte ? <Link to="/register">Créer un compte</Link>
         </p>
 
-        <div className="encart-demo">
-          <strong>Démonstration</strong> — compte administrateur&nbsp;:{' '}
-          <code>admin@tontinesafe.sn</code> / <code>Admin@1234</code>.
-          <br />
-          Sans serveur SMTP configuré, le code à 6 chiffres est écrit dans les journaux du
-          backend (ligne <code>[MAIL DESACTIVE]</code>).
-        </div>
       </div>
     </div>
   )

@@ -1,4 +1,4 @@
-# TontineSafe — Plan de développement
+# Tontyn — Plan de développement
 
 Plateforme web et mobile sécurisée de gestion des tontines communautaires.
 Architecture **3-tiers** : présentation (React + Flutter) · application (Spring Boot) · données (PostgreSQL).

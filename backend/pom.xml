@@ -12,9 +12,9 @@
     </parent>
 
     <groupId>sn.isi</groupId>
-    <artifactId>tontinesafe</artifactId>
+    <artifactId>tontyn</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>TontineSafe</name>
+    <name>Tontyn</name>
     <description>Plateforme securisee de gestion des tontines communautaires</description>
 
     <properties>

@@ -80,8 +80,8 @@ export default function Layout() {
         </button>
 
         <Link to="/tableau-de-bord" className="barre-sup__marque">
-          <span className="logo-pastille" aria-hidden="true">TS</span>
-          <span>TontineSafe</span>
+          <span className="logo-pastille" aria-hidden="true">T</span>
+          <span>Tontyn</span>
         </Link>
 
         <div className="barre-sup__espace" />

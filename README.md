@@ -1,4 +1,4 @@
-# TontineSafe
+# Tontyn
 
 Plateforme web et mobile sécurisée de gestion des tontines communautaires.
 Architecture 3-tiers : **React / Flutter** (présentation) · **Spring Boot** (application) · **PostgreSQL** (données).
