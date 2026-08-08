@@ -44,27 +44,26 @@ public class TontineController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
     @ResponseStatus(HttpStatus.CREATED)
     public TontineResponse creer(@Valid @RequestBody TontineRequest req) {
         return tontineService.creer(req);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("@secu.gereTontine(#id)")
     public TontineResponse modifier(@PathVariable Long id,
                                     @Valid @RequestBody TontineRequest req) {
         return tontineService.modifier(id, req);
     }
 
     @PatchMapping("/{id}/cloturer")
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("@secu.gereTontine(#id)")
     public TontineResponse cloturer(@PathVariable Long id) {
         return tontineService.cloturer(id);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRATEUR')")
+    @PreAuthorize("@secu.gereTontine(#id)")
     public ResponseEntity<Void> supprimer(@PathVariable Long id) {
         tontineService.supprimer(id);
         return ResponseEntity.noContent().build();
@@ -79,7 +78,7 @@ public class TontineController {
 
     /** Endpoint metier : ajouter un membre a une tontine. */
     @PostMapping("/{id}/membres")
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("@secu.gereTontine(#id)")
     @ResponseStatus(HttpStatus.CREATED)
     public MembreResponse ajouterMembre(@PathVariable Long id,
                                         @Valid @RequestBody AjoutMembreRequest req) {
@@ -93,7 +92,7 @@ public class TontineController {
 
     /** Endpoint metier : generer automatiquement les cycles de la tontine. */
     @PostMapping("/{id}/cycles/generer")
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("@secu.gereTontine(#id)")
     @ResponseStatus(HttpStatus.CREATED)
     public List<CycleResponse> genererCycles(@PathVariable Long id,
                                              @Valid @RequestBody GenerationCyclesRequest req) {

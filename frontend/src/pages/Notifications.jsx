@@ -15,18 +15,20 @@ import Alert from '../components/Alert.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Modal from '../components/Modal.jsx'
 import { formaterDateHeure } from '../utils/format.js'
-import { CANAUX_NOTIFICATION, ROLES_GESTION } from '../utils/constants.js'
+import { CANAUX_NOTIFICATION, ROLES_ACTION, ROLES_PLATEFORME } from '../utils/constants.js'
 import Icone from '../components/Icone.jsx'
 
 /**
  * Notifications.
  * - « Mes notifications » : GET /notifications/utilisateur/{id} (nécessite l'id résolu).
- * - « Toutes » : GET /notifications, réservé ADMINISTRATEUR/GESTIONNAIRE.
+ * - « Toutes » : GET /notifications, réservé à l'ADMINISTRATEUR de la plateforme.
  */
 export default function Notifications() {
   const { utilisateurId, aRole } = useAuth()
   const toast = useToast()
-  const peutGerer = aRole(ROLES_GESTION)
+  // L'onglet « Toutes les notifications » interroge la liste globale de la
+  // plateforme, que le serveur reserve a l'administrateur.
+  const peutGerer = aRole(ROLES_PLATEFORME)
 
   const [vue, setVue] = useState('mes') // 'mes' | 'toutes'
   const [seulementNonLues, setSeulementNonLues] = useState(false)
@@ -75,7 +77,7 @@ export default function Notifications() {
     recharger()
   }
 
-  // --- Envoi d'une notification (ADMIN / GESTIONNAIRE) --------------------
+  // --- Envoi d'une notification -------------------------------------------
   const [modale, setModale] = useState(false)
   const { utilisateurs } = useAnnuaire(modale)
   const [formulaire, setFormulaire] = useState({
@@ -119,7 +121,7 @@ export default function Notifications() {
             <Button onClick={marquerToutesLues} disabled={nonLues.length === 0} chargement={enCours === 'toutes'}>
               Tout marquer comme lu
             </Button>
-            <RoleGate roles={ROLES_GESTION}>
+            <RoleGate roles={ROLES_ACTION}>
               <Button variante="principal" onClick={() => setModale(true)}>
                 {<><Icone nom="plus" taille={18} /> Envoyer une notification</>}
               </Button>

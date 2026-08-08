@@ -9,8 +9,8 @@ public record AjoutMembreRequest(
         @NotNull(message = "L'identifiant de l'utilisateur est obligatoire.")
         Long utilisateurId,
 
-        @Pattern(regexp = "GESTIONNAIRE|MEMBRE",
-                 message = "Role attendu dans le groupe : GESTIONNAIRE ou MEMBRE.")
+        @Pattern(regexp = "ADMINISTRATEUR|MEMBRE",
+                 message = "Role attendu dans le groupe : ADMINISTRATEUR ou MEMBRE.")
         String roleGroupe,
 
         /** Optionnel : attribue automatiquement si absent. */

@@ -17,7 +17,7 @@ import EmptyState from '../components/EmptyState.jsx'
 import Modal, { ConfirmDialog } from '../components/Modal.jsx'
 import RecuVue from '../components/RecuVue.jsx'
 import { formaterDateHeure, formaterMontant } from '../utils/format.js'
-import { LIBELLES_METHODE, METHODES_PAIEMENT, ROLES, ROLES_GESTION } from '../utils/constants.js'
+import { LIBELLES_METHODE, METHODES_PAIEMENT, ROLES, ROLES_ACTION } from '../utils/constants.js'
 import Icone from '../components/Icone.jsx'
 
 const STATUTS_PAIEMENT = [
@@ -217,7 +217,7 @@ export default function Paiements() {
 
       <Alert type="info" titre="Enchaînement du parcours">
         Une cotisation est d'abord enregistrée, puis un paiement est initié (statut « initié »).
-        La confirmation par un gestionnaire solde la cotisation, génère automatiquement le reçu
+        La confirmation par un administrateur de la tontine solde la cotisation, génère automatiquement le reçu
         et envoie une notification au membre.
       </Alert>
 
@@ -283,7 +283,7 @@ export default function Paiements() {
                 <div className="groupe-actions">
                   {p.statut === 'INITIE' && (
                     <RoleGate
-                      roles={ROLES_GESTION}
+                      roles={ROLES_ACTION}
                       remplacement={
                         <span className="texte-discret">En attente de confirmation</span>
                       }
@@ -310,7 +310,7 @@ export default function Paiements() {
                         {<><Icone nom="recus" taille={18} /> Voir le reçu</>}
                       </Button>
                     ) : (
-                      <RoleGate roles={ROLES_GESTION}>
+                      <RoleGate roles={ROLES_ACTION}>
                         <Button taille="petit" onClick={() => genererRecu(p)}>
                           Émettre le reçu
                         </Button>

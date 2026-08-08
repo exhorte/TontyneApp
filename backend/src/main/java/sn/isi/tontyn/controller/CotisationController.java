@@ -54,14 +54,14 @@ public class CotisationController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("@secu.gereCotisation(#id)")
     public CotisationResponse modifier(@PathVariable Long id,
                                        @Valid @RequestBody CotisationRequest req) {
         return cotisationService.modifier(id, req);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("@secu.gereCotisation(#id)")
     public ResponseEntity<Void> supprimer(@PathVariable Long id) {
         cotisationService.supprimer(id);
         return ResponseEntity.noContent().build();

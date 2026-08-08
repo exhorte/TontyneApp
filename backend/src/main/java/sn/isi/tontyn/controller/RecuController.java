@@ -36,14 +36,14 @@ public class RecuController {
 
     /** Endpoint metier : emettre le recu d'un paiement confirme. */
     @PostMapping("/paiement/{paiementId}")
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("@secu.gerePaiement(#paiementId)")
     @ResponseStatus(HttpStatus.CREATED)
     public RecuResponse generer(@PathVariable Long paiementId) {
         return recuService.genererPourPaiement(paiementId);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRATEUR')")
+    @PreAuthorize("@secu.gereRecu(#id)")
     public ResponseEntity<Void> supprimer(@PathVariable Long id) {
         recuService.supprimer(id);
         return ResponseEntity.noContent().build();

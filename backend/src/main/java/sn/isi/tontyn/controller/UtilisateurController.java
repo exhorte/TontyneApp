@@ -9,11 +9,15 @@ import java.util.List;
 
 /**
  * Annuaire des comptes de la plateforme.
- * Reserve aux roles ADMINISTRATEUR / GESTIONNAIRE (utilise pour l'ajout de membres).
+ * Accessible a tout compte authentifie : sert a designer les personnes
+ * a inviter dans une tontine.
  */
 @RestController
 @RequestMapping("/api/utilisateurs")
-@PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+// Consultation ouverte a tout compte authentifie : necessaire pour designer
+// les personnes a inviter dans une tontine. Une recherche ciblee par adresse
+// electronique remplacera avantageusement cette liste complete.
+@PreAuthorize("isAuthenticated()")
 public class UtilisateurController {
 
     private final UtilisateurRepository utilisateurRepository;

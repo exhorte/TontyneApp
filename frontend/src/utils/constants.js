@@ -3,12 +3,21 @@
 
 export const ROLES = {
   ADMINISTRATEUR: 'ADMINISTRATEUR',
-  GESTIONNAIRE: 'GESTIONNAIRE',
   MEMBRE: 'MEMBRE',
 }
 
-/** Roles autorises a ecrire (creation / modification) sur la plupart des ressources. */
-export const ROLES_GESTION = [ROLES.ADMINISTRATEUR, ROLES.GESTIONNAIRE]
+/**
+ * Roles autorises a TENTER une action de gestion.
+ *
+ * Depuis la refonte, les droits ne decoulent plus du role global : ils dependent
+ * de la tontine concernee. Tout compte peut donc tenter une action, et c'est le
+ * serveur qui tranche (403 sinon). Lorsque l'ecran connait la tontine, il affine
+ * l'affichage grace au drapeau "administrateur" renvoye par l'API.
+ */
+export const ROLES_ACTION = [ROLES.ADMINISTRATEUR, ROLES.MEMBRE]
+
+/** Reserve a l'exploitant de la plateforme (supervision globale). */
+export const ROLES_PLATEFORME = [ROLES.ADMINISTRATEUR]
 
 export const PERIODICITES = [
   { valeur: 'QUOTIDIENNE', libelle: 'Quotidienne' },
@@ -32,7 +41,7 @@ export const STATUTS_CYCLE = [
 
 export const ROLES_GROUPE = [
   { valeur: 'MEMBRE', libelle: 'Membre' },
-  { valeur: 'GESTIONNAIRE', libelle: 'Gestionnaire du groupe' },
+  { valeur: 'ADMINISTRATEUR', libelle: 'Administrateur de la tontine' },
 ]
 
 export const METHODES_PAIEMENT = [

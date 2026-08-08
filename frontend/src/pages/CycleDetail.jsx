@@ -17,7 +17,7 @@ import Loader from '../components/Loader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Modal, { ConfirmDialog } from '../components/Modal.jsx'
 import { formaterDate, formaterDateHeure, formaterMontant } from '../utils/format.js'
-import { ROLES_GESTION } from '../utils/constants.js'
+import { ROLES_ACTION } from '../utils/constants.js'
 import Icone from '../components/Icone.jsx'
 
 /** Fiche d'un cycle : periode, beneficiaire et cotisations rattachees. */
@@ -119,7 +119,7 @@ export default function CycleDetail() {
             >
               {<><Icone nom="plus" taille={18} /> Enregistrer une cotisation</>}
             </Button>
-            <RoleGate roles={ROLES_GESTION}>
+            <RoleGate roles={ROLES_ACTION}>
               {cycle.statut !== 'CLOTURE' && (
                 <Button onClick={() => setConfirmation(true)}>Clôturer le cycle</Button>
               )}

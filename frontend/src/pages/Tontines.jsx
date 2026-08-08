@@ -15,7 +15,7 @@ import Alert from '../components/Alert.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Modal, { ConfirmDialog } from '../components/Modal.jsx'
 import { formaterDate, formaterMontant } from '../utils/format.js'
-import { PERIODICITES, ROLES, ROLES_GESTION, STATUTS_TONTINE } from '../utils/constants.js'
+import { PERIODICITES, ROLES, ROLES_ACTION, STATUTS_TONTINE } from '../utils/constants.js'
 import Icone from '../components/Icone.jsx'
 
 const FORMULAIRE_VIDE = {
@@ -24,10 +24,11 @@ const FORMULAIRE_VIDE = {
   montantCotisation: '',
   periodicite: 'MENSUELLE',
   nombreMembres: '',
+  dateDebut: new Date().toISOString().slice(0, 10),
   statut: 'ACTIVE',
 }
 
-/** Liste des tontines : consultation pour tous, ecriture pour ADMIN/GESTIONNAIRE. */
+/** Liste des tontines : consultation pour tous, creation ouverte a tout compte. */
 export default function Tontines() {
   const { aRole } = useAuth()
   const toast = useToast()
@@ -61,6 +62,7 @@ export default function Tontines() {
       montantCotisation: String(tontine.montantCotisation ?? ''),
       periodicite: tontine.periodicite ?? 'MENSUELLE',
       nombreMembres: String(tontine.nombreMembres ?? ''),
+      dateDebut: tontine.dateDebut ?? '',
       statut: tontine.statut ?? 'ACTIVE',
     })
     setErreurFormulaire(null)
@@ -82,6 +84,7 @@ export default function Tontines() {
       montantCotisation: Number(formulaire.montantCotisation),
       periodicite: formulaire.periodicite,
       nombreMembres: Number(formulaire.nombreMembres),
+      dateDebut: formulaire.dateDebut || null,
       statut: formulaire.statut,
     }
 
@@ -123,7 +126,7 @@ export default function Tontines() {
     }
   }
 
-  const peutGerer = aRole(ROLES_GESTION)
+  const peutGerer = aRole(ROLES_ACTION)
 
   return (
     <>
@@ -131,7 +134,7 @@ export default function Tontines() {
         titre="Tontines"
         sousTitre="Groupes d'épargne rotative : cotisations, membres et cycles."
         actions={
-          <RoleGate roles={ROLES_GESTION}>
+          <RoleGate roles={ROLES_ACTION}>
             <Button variante="principal" onClick={ouvrirCreation}>
               {<><Icone nom="plus" taille={18} /> Nouvelle tontine</>}
             </Button>
@@ -212,7 +215,7 @@ export default function Tontines() {
                   <Link className="btn btn--secondaire btn--petit" to={`/tontines/${t.id}`}>
                     Détail
                   </Link>
-                  <RoleGate roles={ROLES_GESTION}>
+                  <RoleGate roles={ROLES_ACTION}>
                     <Button taille="petit" onClick={() => ouvrirEdition(t)}>
                       Modifier
                     </Button>
@@ -343,6 +346,18 @@ export default function Tontines() {
               options={PERIODICITES}
               requis
             />
+            <Field
+              label="Date de début"
+              nom="dateDebut"
+              type="date"
+              valeur={formulaire.dateDebut}
+              onChange={majChamp('dateDebut')}
+              erreur={erreurFormulaire?.champs?.dateDebut}
+              aide="Point de départ du premier cycle de cotisation."
+            />
+          </div>
+
+          <div className="grille-champs">
             <Field
               label="Statut"
               nom="statut"

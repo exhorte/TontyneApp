@@ -70,7 +70,7 @@ String libelleMethode(String? m) =>
 String libelleRole(String? r) {
   switch (r) {
     case 'ADMINISTRATEUR': return 'Administrateur';
-    case 'GESTIONNAIRE': return 'Gestionnaire';
+    case 'ADMINISTRATEUR_TONTINE': return 'Administrateur de la tontine';
     case 'MEMBRE': return 'Membre';
     default: return r ?? '—';
   }

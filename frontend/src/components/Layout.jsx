@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.jsx'
 import { notificationsApi } from '../api/notifications.js'
-import { ROLES_GESTION } from '../utils/constants.js'
 import { initiales } from '../utils/format.js'
 import Button from './Button.jsx'
 import Icone from './Icone.jsx'
@@ -20,7 +19,6 @@ const ENTREES_MENU = [
 
 const LIBELLES_ROLE = {
   ADMINISTRATEUR: 'Administrateur',
-  GESTIONNAIRE: 'Gestionnaire',
   MEMBRE: 'Membre',
 }
 
@@ -131,9 +129,8 @@ export default function Layout() {
         <div style={{ padding: '4px 10px 12px' }}>
           <span className="badge-role">{LIBELLES_ROLE[role] || role}</span>
           <p className="texte-discret" style={{ marginTop: 8, fontSize: '0.76rem' }}>
-            {ROLES_GESTION.includes(role)
-              ? 'Vous pouvez créer et modifier les tontines, membres et cycles.'
-              : 'Vous pouvez cotiser et régler vos paiements.'}
+            Vous pouvez créer vos propres tontines et en devenir administrateur,
+            cotiser et régler vos paiements.
           </p>
         </div>
       </nav>

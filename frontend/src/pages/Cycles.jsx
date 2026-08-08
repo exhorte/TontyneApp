@@ -16,7 +16,7 @@ import Alert from '../components/Alert.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Modal, { ConfirmDialog } from '../components/Modal.jsx'
 import { dateDuJourIso, formaterDate, formaterMontant } from '../utils/format.js'
-import { ROLES_GESTION, STATUTS_CYCLE } from '../utils/constants.js'
+import { ROLES_ACTION, STATUTS_CYCLE } from '../utils/constants.js'
 import Icone from '../components/Icone.jsx'
 
 const FORMULAIRE_VIDE = {
@@ -148,7 +148,7 @@ export default function Cycles() {
         titre="Cycles"
         sousTitre="Chaque cycle correspond au tour d'un membre bénéficiaire."
         actions={
-          <RoleGate roles={ROLES_GESTION}>
+          <RoleGate roles={ROLES_ACTION}>
             <Button variante="principal" onClick={ouvrirCreation}>{<><Icone nom="plus" taille={18} /> Nouveau cycle</>}</Button>
           </RoleGate>
         }
@@ -215,7 +215,7 @@ export default function Cycles() {
                   <Link className="btn btn--secondaire btn--petit" to={`/cycles/${c.id}`}>
                     Détail
                   </Link>
-                  <RoleGate roles={ROLES_GESTION}>
+                  <RoleGate roles={ROLES_ACTION}>
                     <Button taille="petit" onClick={() => ouvrirEdition(c)}>Modifier</Button>
                     {c.statut !== 'CLOTURE' && (
                       <Button

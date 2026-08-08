@@ -14,7 +14,7 @@ import Loader from '../components/Loader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Button from '../components/Button.jsx'
 import { formaterDateHeure, formaterMontant } from '../utils/format.js'
-import { ROLES_GESTION } from '../utils/constants.js'
+import { ROLES_ACTION } from '../utils/constants.js'
 import Icone from '../components/Icone.jsx'
 
 /**
@@ -27,7 +27,7 @@ import Icone from '../components/Icone.jsx'
  */
 export default function Dashboard() {
   const { utilisateur, utilisateurId, role } = useAuth()
-  const estGestion = ROLES_GESTION.includes(role)
+  const estGestion = ROLES_ACTION.includes(role)
 
   const chargerSynthese = useCallback(async () => {
     // --- Cas 1 : l'utilisateur est rattache a au moins une tontine ---
@@ -100,7 +100,7 @@ export default function Dashboard() {
 
       {!utilisateurId && !estGestion && (
         <Alert type="info" titre="Aucune adhésion pour le moment">
-          Vous n'êtes membre d'aucune tontine. Un gestionnaire doit vous ajouter à un groupe
+          Vous n'êtes membre d'aucune tontine. Créez-en une ou demandez à en rejoindre une
           pour que vous puissiez cotiser.
         </Alert>
       )}

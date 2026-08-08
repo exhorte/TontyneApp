@@ -10,17 +10,19 @@
 # =====================================================================
 
 # --- Adresses reelles des trois comptes -------------------------------
+# Le premier est l'administrateur de la plateforme ; les deux autres sont
+# de simples membres, libres de creer leurs propres tontines.
 app.comptes.admin.email=prenom.nom@exemple.com
 app.comptes.admin.nom=NOM
 app.comptes.admin.prenom=Prenom
 
-app.comptes.gestionnaire.email=deuxieme.adresse@exemple.com
-app.comptes.gestionnaire.nom=NOM
-app.comptes.gestionnaire.prenom=Prenom
+app.comptes.membre1.email=deuxieme.adresse@exemple.com
+app.comptes.membre1.nom=NOM
+app.comptes.membre1.prenom=Prenom
 
-app.comptes.membre.email=troisieme.adresse@exemple.com
-app.comptes.membre.nom=NOM
-app.comptes.membre.prenom=Prenom
+app.comptes.membre2.email=troisieme.adresse@exemple.com
+app.comptes.membre2.nom=NOM
+app.comptes.membre2.prenom=Prenom
 
 # --- Compte expediteur -------------------------------------------------
 # L'adresse Gmail qui enverra les codes de verification.

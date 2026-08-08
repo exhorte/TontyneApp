@@ -18,10 +18,13 @@ class Utilisateur {
 class Tontine {
   final int id;
   final String nom, periodicite, statut;
-  final String? description, dateCreation;
+  final String? description, dateCreation, dateDebut;
   final double montantCotisation;
   final int nombreMembres;
   final int nombreMembresInscrits, nombreCycles;
+  /// Position de l'utilisateur courant vis-a-vis de cette tontine, renseignee
+  /// par le serveur : les droits ne decoulent plus d'un role global.
+  final bool administrateur, membre;
   Tontine.depuisJson(Map<String, dynamic> j)
       : id = j['id'],
         nom = j['nom'] ?? '',
@@ -32,6 +35,9 @@ class Tontine {
         nombreMembresInscrits = (j['nombreMembresInscrits'] ?? 0).toInt(),
         nombreCycles = (j['nombreCycles'] ?? 0).toInt(),
         dateCreation = j['dateCreation']?.toString(),
+        dateDebut = j['dateDebut']?.toString(),
+        administrateur = j['administrateur'] == true,
+        membre = j['membre'] == true,
         statut = j['statut'] ?? '';
 }
 

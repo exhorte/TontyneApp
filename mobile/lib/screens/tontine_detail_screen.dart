@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../models/modeles.dart' as m;
 import '../services/api_service.dart';
-import '../services/auth_service.dart';
 import '../services/ressources.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
@@ -77,7 +75,8 @@ class _TontineDetailScreenState extends State<TontineDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    final peutGerer = context.read<AuthService>().peutGerer;
+    // Droit reel sur CETTE tontine, tel que le serveur le declare.
+    final peutGerer = _tontine?.administrateur ?? false;
     return Scaffold(
       appBar: AppBar(
         title: Text(_tontine?.nom ?? 'Tontine'),
@@ -274,7 +273,7 @@ class _AjoutMembreState extends State<_AjoutMembre> {
             decoration: const InputDecoration(labelText: 'Rôle dans le groupe'),
             items: const [
               DropdownMenuItem(value: 'MEMBRE', child: Text('Membre')),
-              DropdownMenuItem(value: 'GESTIONNAIRE', child: Text('Gestionnaire du groupe')),
+              DropdownMenuItem(value: 'ADMINISTRATEUR', child: Text('Administrateur de la tontine')),
             ],
             onChanged: (v) => setState(() => _role = v ?? 'MEMBRE'),
           ),

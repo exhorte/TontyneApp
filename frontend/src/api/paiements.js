@@ -14,7 +14,7 @@ export const paiementsApi = {
 
   /** Ouvert a tout utilisateur authentifie. Corps : { cotisationId, methode, reference? }. */
   initier: (donnees) => client.post('/paiements', donnees).then((r) => r.data),
-  /** Reserve ADMIN/GESTIONNAIRE : solde la cotisation, emet le recu, notifie le membre. */
+  /** Reserve a l'administrateur de la tontine : solde la cotisation, emet le recu, notifie le membre. */
   confirmer: (id) => client.patch(`/paiements/${id}/confirmer`).then((r) => r.data),
   annuler: (id) => client.patch(`/paiements/${id}/annuler`).then((r) => r.data),
   /** Reserve ADMINISTRATEUR. */

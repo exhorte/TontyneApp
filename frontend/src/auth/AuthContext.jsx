@@ -8,7 +8,7 @@ const AuthContext = createContext(null)
 
 /**
  * Decode le JWT emis par le backend.
- * Claims : sub = e-mail, role = ADMINISTRATEUR | GESTIONNAIRE | MEMBRE, exp (secondes).
+ * Claims : sub = e-mail, role = ADMINISTRATEUR | MEMBRE, exp (secondes).
  * @returns {{ email: string, role: string, expiration: number } | null} null si absent/expire/illisible.
  */
 function decoderToken(token) {
@@ -134,7 +134,8 @@ export function AuthProvider({ children }) {
       role,
       pret,
       estAuthentifie: Boolean(utilisateur),
-      /** hasRole('ADMINISTRATEUR', 'GESTIONNAIRE') */
+      /** aRole('ADMINISTRATEUR') : role GLOBAL. Les droits sur une tontine donnee
+       *  proviennent du drapeau "administrateur" renvoye par l'API. */
       aRole: (...roles) => (roles.flat().length === 0 ? Boolean(role) : roles.flat().includes(role)),
       demanderCode,
       validerCode,

@@ -23,7 +23,7 @@ public class NotificationController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("hasRole('ADMINISTRATEUR')")
     public List<NotificationResponse> lister() {
         return notificationService.lister();
     }
@@ -45,7 +45,7 @@ public class NotificationController {
 
     /** Endpoint metier : envoyer une notification. */
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("isAuthenticated()")
     @ResponseStatus(HttpStatus.CREATED)
     public NotificationResponse envoyer(@Valid @RequestBody NotificationRequest req) {
         return notificationService.envoyer(req);
@@ -57,7 +57,7 @@ public class NotificationController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("hasRole('ADMINISTRATEUR')")
     public ResponseEntity<Void> supprimer(@PathVariable Long id) {
         notificationService.supprimer(id);
         return ResponseEntity.noContent().build();

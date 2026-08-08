@@ -50,19 +50,19 @@ public class PaiementController {
 
     /** Endpoint metier : confirmer le paiement, solder la cotisation et emettre le recu. */
     @PatchMapping("/{id}/confirmer")
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("@secu.gerePaiement(#id)")
     public PaiementResponse confirmer(@PathVariable Long id) {
         return paiementService.confirmer(id);
     }
 
     @PatchMapping("/{id}/annuler")
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("@secu.gerePaiement(#id)")
     public PaiementResponse annuler(@PathVariable Long id) {
         return paiementService.annuler(id);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRATEUR')")
+    @PreAuthorize("@secu.gerePaiement(#id)")
     public ResponseEntity<Void> supprimer(@PathVariable Long id) {
         paiementService.supprimer(id);
         return ResponseEntity.noContent().build();

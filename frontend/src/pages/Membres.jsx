@@ -17,7 +17,7 @@ import Alert from '../components/Alert.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Modal, { ConfirmDialog } from '../components/Modal.jsx'
 import { formaterDate, formaterMontant } from '../utils/format.js'
-import { ROLES_GESTION, ROLES_GROUPE } from '../utils/constants.js'
+import { ROLES_ACTION, ROLES_GROUPE } from '../utils/constants.js'
 import Icone from '../components/Icone.jsx'
 
 /** Membres, filtrables par tontine. Inclut l'historique des cotisations. */
@@ -26,7 +26,7 @@ export default function Membres() {
   const tontineId = parametres.get('tontineId') || ''
   const toast = useToast()
   const { aRole } = useAuth()
-  const peutGerer = aRole(ROLES_GESTION)
+  const peutGerer = aRole(ROLES_ACTION)
 
   const { donnees: tontines } = useRequete(() => tontinesApi.lister(), [], { valeurInitiale: [] })
 
@@ -164,7 +164,7 @@ export default function Membres() {
         titre="Membres"
         sousTitre="Adhésions des utilisateurs aux tontines, avec leur ordre de passage."
         actions={
-          <RoleGate roles={ROLES_GESTION}>
+          <RoleGate roles={ROLES_ACTION}>
             <Button variante="principal" onClick={ouvrirAjout}>{<><Icone nom="plus" taille={18} /> Ajouter un membre</>}</Button>
           </RoleGate>
         }
@@ -229,7 +229,7 @@ export default function Membres() {
                   <Button taille="petit" onClick={() => ouvrirHistorique(m)}>
                     Historique
                   </Button>
-                  <RoleGate roles={ROLES_GESTION}>
+                  <RoleGate roles={ROLES_ACTION}>
                     {m.statut === 'ACTIF' ? (
                       <Button
                         taille="petit"

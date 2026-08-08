@@ -3,7 +3,7 @@ import { utilisateursApi } from '../api/utilisateurs.js'
 
 /**
  * Annuaire des comptes de la plateforme, alimente par GET /api/utilisateurs
- * (reserve aux roles ADMINISTRATEUR / GESTIONNAIRE). Fournit pour chaque compte
+ * (accessible a tout compte authentifie). Fournit pour chaque compte
  * { id, nomComplet, email } afin d'alimenter le selecteur d'ajout de membre.
  */
 export default function useAnnuaire(actif = true) {

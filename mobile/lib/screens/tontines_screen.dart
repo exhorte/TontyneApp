@@ -118,6 +118,7 @@ class _FormulaireTontineState extends State<_FormulaireTontine> {
   final _montant = TextEditingController(text: '25000');
   final _nombre = TextEditingController(text: '10');
   String _periodicite = 'MENSUELLE';
+  DateTime _dateDebut = DateTime.now();
   bool _envoi = false;
   String? _erreur;
 
@@ -125,6 +126,19 @@ class _FormulaireTontineState extends State<_FormulaireTontine> {
   void dispose() {
     _nom.dispose(); _description.dispose(); _montant.dispose(); _nombre.dispose();
     super.dispose();
+  }
+
+  Future<void> _choisirDate() async {
+    final choix = await showDatePicker(
+      context: context,
+      initialDate: _dateDebut,
+      firstDate: DateTime(DateTime.now().year - 2),
+      lastDate: DateTime(DateTime.now().year + 5),
+      helpText: 'Date de début de la tontine',
+      cancelText: 'Annuler',
+      confirmText: 'Valider',
+    );
+    if (choix != null) setState(() => _dateDebut = choix);
   }
 
   Future<void> _creer() async {
@@ -136,6 +150,7 @@ class _FormulaireTontineState extends State<_FormulaireTontine> {
         'montantCotisation': double.tryParse(_montant.text) ?? 0,
         'periodicite': _periodicite,
         'nombreMembres': int.tryParse(_nombre.text) ?? 0,
+        'dateDebut': _dateDebut.toIso8601String().substring(0, 10),
         'statut': 'ACTIVE',
       });
       if (mounted) Navigator.pop(context, true);
@@ -183,6 +198,19 @@ class _FormulaireTontineState extends State<_FormulaireTontine> {
                 .map((p) => DropdownMenuItem(value: p, child: Text(libellePeriodicite(p))))
                 .toList(),
             onChanged: (v) => setState(() => _periodicite = v ?? 'MENSUELLE'),
+          ),
+          const SizedBox(height: Jetons.e3),
+          InkWell(
+            onTap: _choisirDate,
+            borderRadius: BorderRadius.circular(Jetons.rBouton),
+            child: InputDecorator(
+              decoration: const InputDecoration(
+                labelText: 'Date de début',
+                helperText: 'Point de départ du premier cycle.',
+              ),
+              child: Text(formaterDate(
+                  _dateDebut.toIso8601String().substring(0, 10))),
+            ),
           ),
           const SizedBox(height: Jetons.e5),
           FilledButton(

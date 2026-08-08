@@ -49,33 +49,33 @@ public class MembreController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("@secu.gereTontine(#req.tontineId())")
     @ResponseStatus(HttpStatus.CREATED)
     public MembreResponse creer(@Valid @RequestBody MembreRequest req) {
         return membreService.creer(req);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("@secu.gereMembre(#id)")
     public MembreResponse modifier(@PathVariable Long id,
                                    @Valid @RequestBody AjoutMembreRequest req) {
         return membreService.modifier(id, req);
     }
 
     @PatchMapping("/{id}/suspendre")
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("@secu.gereMembre(#id)")
     public MembreResponse suspendre(@PathVariable Long id) {
         return membreService.suspendre(id);
     }
 
     @PatchMapping("/{id}/reactiver")
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("@secu.gereMembre(#id)")
     public MembreResponse reactiver(@PathVariable Long id) {
         return membreService.reactiver(id);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("@secu.gereMembre(#id)")
     public ResponseEntity<Void> supprimer(@PathVariable Long id) {
         membreService.supprimer(id);
         return ResponseEntity.noContent().build();

@@ -17,7 +17,7 @@ import Alert from '../components/Alert.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Modal, { ConfirmDialog } from '../components/Modal.jsx'
 import { formaterDateHeure, formaterMontant } from '../utils/format.js'
-import { ROLES_GESTION } from '../utils/constants.js'
+import { ROLES_ACTION } from '../utils/constants.js'
 import Icone from '../components/Icone.jsx'
 
 /**
@@ -207,7 +207,7 @@ export default function Cotisations() {
                       Payer
                     </Link>
                   )}
-                  <RoleGate roles={ROLES_GESTION}>
+                  <RoleGate roles={ROLES_ACTION}>
                     <Button
                       taille="petit"
                       variante="danger"

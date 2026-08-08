@@ -15,11 +15,15 @@ import sn.isi.tontyn.repository.UtilisateurRepository;
 /**
  * Comptes crees au demarrage sur le profil h2 (base en memoire).
  *
- * <p>Les adresses proviennent de proprietes externalisees
- * (app.comptes.*.email), elles-memes alimentees par les variables
- * d'environnement TONTYN_EMAIL_ADMIN, TONTYN_EMAIL_GESTIONNAIRE et
- * TONTYN_EMAIL_MEMBRE, ou par le fichier application-local.properties.
- * Aucune adresse reelle ne figure donc dans le depot.</p>
+ * <p>Un seul compte porte le role global ADMINISTRATEUR, reserve a l'exploitant
+ * de la plateforme. Les autres sont de simples membres : chacun peut creer une
+ * tontine et en devient alors administrateur, sans droit sur les tontines des
+ * autres.</p>
+ *
+ * <p>Les adresses proviennent de proprietes externalisees, alimentees par les
+ * variables d'environnement TONTYN_EMAIL_ADMIN, TONTYN_EMAIL_MEMBRE1 et
+ * TONTYN_EMAIL_MEMBRE2, ou par le fichier application-local.properties. Aucune
+ * adresse reelle ne figure donc dans le depot.</p>
  */
 @Configuration
 @Profile("h2")
@@ -34,49 +38,51 @@ public class JeuDeDonneesH2 {
     @Value("${app.comptes.admin.prenom}")
     private String prenomAdmin;
 
-    @Value("${app.comptes.gestionnaire.email}")
-    private String emailGestionnaire;
-    @Value("${app.comptes.gestionnaire.nom}")
-    private String nomGestionnaire;
-    @Value("${app.comptes.gestionnaire.prenom}")
-    private String prenomGestionnaire;
+    @Value("${app.comptes.membre1.email}")
+    private String emailMembre1;
+    @Value("${app.comptes.membre1.nom}")
+    private String nomMembre1;
+    @Value("${app.comptes.membre1.prenom}")
+    private String prenomMembre1;
 
-    @Value("${app.comptes.membre.email}")
-    private String emailMembre;
-    @Value("${app.comptes.membre.nom}")
-    private String nomMembre;
-    @Value("${app.comptes.membre.prenom}")
-    private String prenomMembre;
+    @Value("${app.comptes.membre2.email}")
+    private String emailMembre2;
+    @Value("${app.comptes.membre2.nom}")
+    private String nomMembre2;
+    @Value("${app.comptes.membre2.prenom}")
+    private String prenomMembre2;
 
     @Bean
     CommandLineRunner initialiserComptes(UtilisateurRepository repository,
-                                         PasswordEncoder encoder) {
+                                         PasswordEncoder encodeur) {
         return args -> {
             if (repository.count() > 0) {
                 return;
             }
-            creer(repository, encoder, nomAdmin, prenomAdmin,
+            creer(repository, encodeur, nomAdmin, prenomAdmin,
                     emailAdmin, "Admin@1234", Role.ADMINISTRATEUR);
-            creer(repository, encoder, nomGestionnaire, prenomGestionnaire,
-                    emailGestionnaire, "Gestion@1234", Role.GESTIONNAIRE);
-            creer(repository, encoder, nomMembre, prenomMembre,
-                    emailMembre, "Membre@1234", Role.MEMBRE);
+            creer(repository, encodeur, nomMembre1, prenomMembre1,
+                    emailMembre1, "Membre@1234", Role.MEMBRE);
+            creer(repository, encodeur, nomMembre2, prenomMembre2,
+                    emailMembre2, "Membre@1234", Role.MEMBRE);
 
             log.info("[PROFIL H2] {} comptes crees.", repository.count());
-            log.info("[PROFIL H2] Administrateur : {}", emailAdmin);
-            log.info("[PROFIL H2] Gestionnaire   : {}", emailGestionnaire);
-            log.info("[PROFIL H2] Membre         : {}", emailMembre);
+            log.info("[PROFIL H2] Administrateur plateforme : {} / Admin@1234", emailAdmin);
+            log.info("[PROFIL H2] Membre 1                  : {} / Membre@1234", emailMembre1);
+            log.info("[PROFIL H2] Membre 2                  : {} / Membre@1234", emailMembre2);
+            log.info("[PROFIL H2] Rappel : tout membre peut creer une tontine "
+                    + "et en devient administrateur.");
         };
     }
 
-    private void creer(UtilisateurRepository repository, PasswordEncoder encoder,
+    private void creer(UtilisateurRepository repository, PasswordEncoder encodeur,
                        String nom, String prenom, String email, String motDePasse, Role role) {
         Utilisateur u = new Utilisateur();
         u.setNom(nom);
         u.setPrenom(prenom);
         u.setEmail(email);
         u.setTelephone("+221770000000");
-        u.setMotDePasse(encoder.encode(motDePasse));
+        u.setMotDePasse(encodeur.encode(motDePasse));
         u.setRole(role);
         repository.save(u);
     }

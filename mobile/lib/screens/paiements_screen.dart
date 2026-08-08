@@ -102,7 +102,7 @@ class _PaiementsScreenState extends State<PaiementsScreen> {
                             padding: EdgeInsets.all(Jetons.e4),
                             child: Bandeau(
                                 'Une cotisation est d\'abord enregistrée, puis un paiement est '
-                                'initié. La confirmation par un gestionnaire solde la cotisation, '
+                                'initié. La confirmation par un administrateur de la tontine solde la cotisation, '
                                 'génère le reçu et notifie le membre.'),
                           ),
                           ..._paiements.map((p) => LigneListe(

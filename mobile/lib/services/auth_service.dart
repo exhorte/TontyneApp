@@ -18,7 +18,13 @@ class AuthService extends ChangeNotifier {
   bool get pret => _pret;
   bool get connecte => _jeton != null && _utilisateur != null;
   String get role => _utilisateur?.role ?? 'MEMBRE';
-  bool get peutGerer => role == 'ADMINISTRATEUR' || role == 'GESTIONNAIRE';
+  /// Administrateur de la plateforme (supervision globale).
+  bool get estAdminPlateforme => role == 'ADMINISTRATEUR';
+
+  /// Tout compte peut desormais creer une tontine et tenter une action de
+  /// gestion : c'est le serveur qui tranche, tontine par tontine. Lorsqu'un
+  /// ecran connait la tontine, il s'appuie plutot sur Tontine.administrateur.
+  bool get peutGerer => connecte;
 
   AuthService() {
     ApiService.instance.surExpiration = () => deconnexion();

@@ -42,26 +42,26 @@ public class CycleController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("@secu.gereTontine(#req.tontineId())")
     @ResponseStatus(HttpStatus.CREATED)
     public CycleResponse creer(@Valid @RequestBody CycleRequest req) {
         return cycleService.creer(req);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("@secu.gereCycle(#id)")
     public CycleResponse modifier(@PathVariable Long id, @Valid @RequestBody CycleRequest req) {
         return cycleService.modifier(id, req);
     }
 
     @PatchMapping("/{id}/cloturer")
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("@secu.gereCycle(#id)")
     public CycleResponse cloturer(@PathVariable Long id) {
         return cycleService.cloturer(id);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMINISTRATEUR','GESTIONNAIRE')")
+    @PreAuthorize("@secu.gereCycle(#id)")
     public ResponseEntity<Void> supprimer(@PathVariable Long id) {
         cycleService.supprimer(id);
         return ResponseEntity.noContent().build();

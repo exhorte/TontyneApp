@@ -8,6 +8,7 @@ import sn.isi.tontyn.dto.MembreResponse;
 import sn.isi.tontyn.exception.ConflitMetierException;
 import sn.isi.tontyn.exception.RessourceIntrouvableException;
 import sn.isi.tontyn.model.Membre;
+import sn.isi.tontyn.model.RoleGroupe;
 import sn.isi.tontyn.model.Tontine;
 import sn.isi.tontyn.model.Utilisateur;
 import sn.isi.tontyn.repository.CotisationRepository;
@@ -94,7 +95,7 @@ public class MembreService {
         Membre membre = new Membre();
         membre.setTontine(tontine);
         membre.setUtilisateur(utilisateur);
-        membre.setRoleGroupe(req.roleGroupe() != null ? req.roleGroupe() : "MEMBRE");
+        membre.setRoleGroupe(RoleGroupe.normaliser(req.roleGroupe()));
         membre.setOrdreTour(ordreTour);
         return MembreResponse.from(membreRepository.save(membre));
     }
@@ -102,7 +103,7 @@ public class MembreService {
     public MembreResponse modifier(Long id, AjoutMembreRequest req) {
         Membre membre = chargerMembre(id);
         if (req.roleGroupe() != null) {
-            membre.setRoleGroupe(req.roleGroupe());
+            membre.setRoleGroupe(RoleGroupe.normaliser(req.roleGroupe()));
         }
         if (req.ordreTour() != null && req.ordreTour() != membre.getOrdreTour()) {
             if (membreRepository.existsByTontineIdAndOrdreTour(

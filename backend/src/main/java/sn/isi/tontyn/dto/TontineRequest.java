@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
+import java.time.LocalDate;
+
 public record TontineRequest(
         @NotBlank(message = "Le nom de la tontine est obligatoire.")
         @Size(max = 100, message = "Le nom ne doit pas depasser 100 caracteres.")
@@ -28,5 +30,11 @@ public record TontineRequest(
 
         @Pattern(regexp = "ACTIVE|SUSPENDUE|CLOTUREE",
                  message = "Statut attendu : ACTIVE, SUSPENDUE ou CLOTUREE.")
-        String statut
+        String statut,
+
+        /**
+         * Date de demarrage effectif. Facultative : en son absence, la tontine
+         * demarre le jour de sa creation.
+         */
+        LocalDate dateDebut
 ) {}

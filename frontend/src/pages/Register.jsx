@@ -18,7 +18,7 @@ const FORMULAIRE_VIDE = {
 
 /**
  * Inscription. Le backend attribue systematiquement le role MEMBRE ;
- * la montee en GESTIONNAIRE/ADMINISTRATEUR releve de l'administration.
+ * tout membre peut ensuite creer sa propre tontine et en devenir administrateur.
  */
 export default function Register() {
   const navigate = useNavigate()

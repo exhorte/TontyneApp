@@ -19,7 +19,7 @@ import Loader from '../components/Loader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Modal, { ConfirmDialog } from '../components/Modal.jsx'
 import { dateDuJourIso, formaterDate, formaterMontant } from '../utils/format.js'
-import { PERIODICITES, ROLES_GESTION, ROLES_GROUPE } from '../utils/constants.js'
+import { PERIODICITES, ROLES_ACTION, ROLES_GROUPE } from '../utils/constants.js'
 import Icone from '../components/Icone.jsx'
 
 /** Fiche d'une tontine : informations, membres et cycles. */
@@ -28,7 +28,7 @@ export default function TontineDetail() {
   const navigate = useNavigate()
   const toast = useToast()
   const { aRole, rafraichirUtilisateurId } = useAuth()
-  const peutGerer = aRole(ROLES_GESTION)
+  const peutGerer = aRole(ROLES_ACTION)
 
   const [onglet, setOnglet] = useState('membres')
 
@@ -203,7 +203,7 @@ export default function TontineDetail() {
         titre={tontine.nom}
         sousTitre={tontine.description || 'Aucune description renseignée.'}
         actions={
-          <RoleGate roles={ROLES_GESTION}>
+          <RoleGate roles={ROLES_ACTION}>
             <Button onClick={() => setModaleMembre(true)} disabled={tontine.statut === 'CLOTUREE'}>
               {<><Icone nom="plus" taille={18} /> Ajouter un membre</>}
             </Button>
@@ -330,7 +330,7 @@ export default function TontineDetail() {
                     >
                       Cotisations
                     </Link>
-                    <RoleGate roles={ROLES_GESTION}>
+                    <RoleGate roles={ROLES_ACTION}>
                       {m.statut === 'ACTIF' ? (
                         <Button
                           taille="petit"
@@ -415,7 +415,7 @@ export default function TontineDetail() {
                     <Link className="btn btn--secondaire btn--petit" to={`/cycles/${c.id}`}>
                       Détail
                     </Link>
-                    <RoleGate roles={ROLES_GESTION}>
+                    <RoleGate roles={ROLES_ACTION}>
                       {c.statut !== 'CLOTURE' && (
                         <Button
                           taille="petit"
