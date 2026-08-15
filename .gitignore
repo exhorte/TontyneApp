@@ -33,6 +33,8 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+# Pas un secret : seule l'URL publique de l'API pour le build de production Vercel.
+!frontend/.env.production
 *.env
 application-secret.properties
 application-local.properties
