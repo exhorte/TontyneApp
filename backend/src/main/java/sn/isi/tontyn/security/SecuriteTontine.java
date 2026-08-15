@@ -28,7 +28,7 @@ import java.util.Optional;
  *
  * <p>Le principe retenu est celui du moindre privilege applique a la portee :
  * un utilisateur n'exerce de pouvoir de gestion que sur les tontines dont il
- * est administrateur, jamais sur celles auxquelles il n'appartient pas.
+ * est gestionnaire, jamais sur celles auxquelles il n'appartient pas.
  * L'administrateur de la plateforme constitue la seule exception, justifiee
  * par ses obligations de supervision et de moderation.</p>
  */
@@ -67,7 +67,7 @@ public class SecuriteTontine {
         if (auth == null || !auth.isAuthenticated() || auth.getName() == null) {
             return Optional.empty();
         }
-        return utilisateurRepository.findByEmail(auth.getName());
+        return utilisateurRepository.findByTelephone(auth.getName());
     }
 
     /** Identifiant de l'utilisateur courant, ou {@code null} si aucun. */
@@ -102,7 +102,7 @@ public class SecuriteTontine {
             return false;
         }
         return membreRepository.findByTontineIdAndUtilisateurId(tontineId, utilisateurId)
-                .map(m -> RoleGroupe.estAdministrateur(m.getRoleGroupe()))
+                .map(m -> RoleGroupe.estGestionnaire(m.getRoleGroupe()))
                 .orElse(false);
     }
 

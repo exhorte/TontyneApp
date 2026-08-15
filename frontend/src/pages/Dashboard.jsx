@@ -78,7 +78,7 @@ export default function Dashboard() {
   const totalDu = enAttente.reduce((somme, c) => somme + (c.montant || 0), 0)
   const nonLues = notifications.filter((n) => n.statut === 'ENVOYEE')
 
-  const prenom = utilisateur?.email?.split('@')[0] ?? ''
+  const prenom = utilisateur?.telephone ?? ''
 
   return (
     <>

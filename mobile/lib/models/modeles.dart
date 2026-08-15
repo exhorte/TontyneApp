@@ -3,22 +3,35 @@ library;
 
 class Utilisateur {
   final int id;
-  final String nom, prenom, email, role;
-  final String? telephone;
+  final String nom, prenom, telephone, role;
+
+  /// Facultative : l'utilisateur peut l'ajouter depuis son profil.
+  final String? email, emailEnAttente;
+  final bool emailVerifie;
+
   Utilisateur.depuisJson(Map<String, dynamic> j)
       : id = j['id'],
         nom = j['nom'] ?? '',
         prenom = j['prenom'] ?? '',
-        email = j['email'] ?? '',
-        telephone = j['telephone'],
+        telephone = j['telephone'] ?? '',
+        email = j['email'],
+        emailVerifie = j['emailVerifie'] == true,
+        emailEnAttente = j['emailEnAttente'],
         role = j['role'] ?? 'MEMBRE';
-  String get nomComplet => '$prenom $nom'.trim().isEmpty ? email : '$prenom $nom'.trim();
+
+  String get nomComplet {
+    final complet = '$prenom $nom'.trim();
+    return complet.isEmpty ? telephone : complet;
+  }
+
+  /// Vrai lorsqu'une adresse a ete saisie mais pas encore confirmee.
+  bool get emailEnCoursDeConfirmation => (emailEnAttente ?? '').isNotEmpty;
 }
 
 class Tontine {
   final int id;
   final String nom, periodicite, statut;
-  final String? description, dateCreation, dateDebut;
+  final String? description, dateCreation;
   final double montantCotisation;
   final int nombreMembres;
   final int nombreMembresInscrits, nombreCycles;
@@ -35,7 +48,6 @@ class Tontine {
         nombreMembresInscrits = (j['nombreMembresInscrits'] ?? 0).toInt(),
         nombreCycles = (j['nombreCycles'] ?? 0).toInt(),
         dateCreation = j['dateCreation']?.toString(),
-        dateDebut = j['dateDebut']?.toString(),
         administrateur = j['administrateur'] == true,
         membre = j['membre'] == true,
         statut = j['statut'] ?? '';
@@ -43,7 +55,7 @@ class Tontine {
 
 class Membre {
   final int id;
-  final String? dateAdhesion, roleGroupe, nomComplet, email, tontineNom;
+  final String? dateAdhesion, roleGroupe, nomComplet, telephone, tontineNom;
   final int ordreTour;
   final String statut;
   final int? utilisateurId, tontineId;
@@ -55,7 +67,7 @@ class Membre {
         statut = j['statut'] ?? '',
         utilisateurId = j['utilisateurId'],
         nomComplet = j['nomComplet'],
-        email = j['email'],
+        telephone = j['telephone'],
         tontineId = j['tontineId'],
         tontineNom = j['tontineNom'];
 }

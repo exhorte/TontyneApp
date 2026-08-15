@@ -66,7 +66,7 @@ class _CoquilleState extends State<Coquille> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(u?.email ?? '',
+                  Text(u?.telephone ?? '',
                       style: const TextStyle(
                           fontSize: 12, fontWeight: FontWeight.w500, color: Jetons.encre)),
                   Text(libelleRole(u?.role),
@@ -77,7 +77,7 @@ class _CoquilleState extends State<Coquille> {
               CircleAvatar(
                 radius: 16,
                 backgroundColor: Jetons.bleu,
-                child: Text(initiales(u?.email),
+                child: Text(initiales(u?.nomComplet),
                     style: const TextStyle(
                         fontSize: 12, color: Jetons.blanc, fontWeight: FontWeight.w600)),
               ),

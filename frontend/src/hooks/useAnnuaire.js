@@ -22,8 +22,8 @@ export default function useAnnuaire(actif = true) {
         const liste = comptes
           .map((u) => ({
             id: u.id,
-            nomComplet: `${u.prenom ?? ''} ${u.nom ?? ''}`.trim() || u.email,
-            email: u.email,
+            nomComplet: `${u.prenom ?? ''} ${u.nom ?? ''}`.trim() || u.telephone,
+            telephone: u.telephone,
           }))
           .sort((a, b) => a.id - b.id)
         setUtilisateurs(liste)

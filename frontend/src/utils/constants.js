@@ -41,7 +41,7 @@ export const STATUTS_CYCLE = [
 
 export const ROLES_GROUPE = [
   { valeur: 'MEMBRE', libelle: 'Membre' },
-  { valeur: 'ADMINISTRATEUR', libelle: 'Administrateur de la tontine' },
+  { valeur: 'GESTIONNAIRE', libelle: 'Gestionnaire de la tontine' },
 ]
 
 export const METHODES_PAIEMENT = [

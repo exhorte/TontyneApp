@@ -25,15 +25,18 @@ public class MembreService {
     private final UtilisateurRepository utilisateurRepository;
     private final CotisationRepository cotisationRepository;
     private final TontineService tontineService;
+    private final DeplafonnementService deplafonnement;
 
     public MembreService(MembreRepository membreRepository,
                          UtilisateurRepository utilisateurRepository,
                          CotisationRepository cotisationRepository,
-                         TontineService tontineService) {
+                         TontineService tontineService,
+                         DeplafonnementService deplafonnement) {
         this.membreRepository = membreRepository;
         this.utilisateurRepository = utilisateurRepository;
         this.cotisationRepository = cotisationRepository;
         this.tontineService = tontineService;
+        this.deplafonnement = deplafonnement;
     }
 
     @Transactional(readOnly = true)
@@ -75,6 +78,9 @@ public class MembreService {
         Utilisateur utilisateur = utilisateurRepository.findById(req.utilisateurId())
                 .orElseThrow(() -> new RessourceIntrouvableException("Utilisateur",
                         req.utilisateurId()));
+
+        // Une tontine au-dessus du plafond n'accepte que les comptes verifies.
+        deplafonnement.exigerAjoutAutorise(tontine, utilisateur);
 
         if (membreRepository.existsByTontineIdAndUtilisateurId(tontineId, req.utilisateurId())) {
             throw new ConflitMetierException(

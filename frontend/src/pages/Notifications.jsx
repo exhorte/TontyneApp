@@ -270,7 +270,7 @@ export default function Notifications() {
           />
           <datalist id="annuaire-notifications">
             {utilisateurs.map((u) => (
-              <option key={u.id} value={u.id}>{`${u.nomComplet} — ${u.email}`}</option>
+              <option key={u.id} value={u.id}>{`${u.nomComplet} — ${u.telephone}`}</option>
             ))}
           </datalist>
 

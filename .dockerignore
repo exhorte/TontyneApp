@@ -1,0 +1,12 @@
+# Contexte de build Docker : on ne garde que ce qu'il faut pour compiler le
+# backend, le reste (frontend, mobile, docs) alourdirait inutilement l'envoi.
+frontend/
+mobile/
+docs/
+archive/
+backend/target/
+backend/.idea/
+backend/*.iml
+backend/donnees/
+.git/
+*.log

@@ -25,15 +25,18 @@ public class TontineService {
     private final MembreRepository membreRepository;
     private final CycleRepository cycleRepository;
     private final SecuriteTontine securite;
+    private final DeplafonnementService deplafonnement;
 
     public TontineService(TontineRepository tontineRepository,
                           MembreRepository membreRepository,
                           CycleRepository cycleRepository,
-                          SecuriteTontine securite) {
+                          SecuriteTontine securite,
+                          DeplafonnementService deplafonnement) {
         this.tontineRepository = tontineRepository;
         this.membreRepository = membreRepository;
         this.cycleRepository = cycleRepository;
         this.securite = securite;
+        this.deplafonnement = deplafonnement;
     }
 
     @Transactional(readOnly = true)
@@ -59,15 +62,20 @@ public class TontineService {
 
     /**
      * Cree une tontine et rattache immediatement son auteur en qualite
-     * d'administrateur de celle-ci.
+     * de gestionnaire de celle-ci.
      *
      * <p>C'est ce rattachement qui fonde tout le controle d'acces ulterieur :
      * les droits de gestion ne decoulent plus d'un role global, mais de la
-     * qualite d'administrateur au sein d'une tontine determinee. Le createur
+     * qualite de gestionnaire au sein d'une tontine determinee. Le createur
      * recoit le premier tour de beneficiaire, qu'il pourra reordonner par la
      * suite.</p>
      */
     public TontineResponse creer(TontineRequest req) {
+        // Au-dela du plafond, l'auteur doit avoir verifie son identite : il
+        // devient le premier membre du groupe.
+        deplafonnement.exigerCreationAutorisee(req.montantCotisation(), req.nombreMembres(),
+                securite.utilisateurCourant().orElse(null));
+
         Tontine t = new Tontine();
         appliquer(t, req);
         t.setStatut(req.statut() != null ? req.statut() : "ACTIVE");
@@ -76,20 +84,20 @@ public class TontineService {
         }
         Tontine enregistree = tontineRepository.save(t);
 
-        securite.utilisateurCourant().ifPresent(auteur -> rattacherAdministrateur(enregistree, auteur));
+        securite.utilisateurCourant().ifPresent(auteur -> rattacherGestionnaire(enregistree, auteur));
 
         return versReponse(enregistree);
     }
 
-    /** Inscrit l'auteur de la tontine comme premier membre, avec les droits d'administration. */
-    private void rattacherAdministrateur(Tontine tontine, Utilisateur auteur) {
+    /** Inscrit l'auteur de la tontine comme premier membre, avec les droits de gestion. */
+    private void rattacherGestionnaire(Tontine tontine, Utilisateur auteur) {
         if (membreRepository.existsByTontineIdAndUtilisateurId(tontine.getId(), auteur.getId())) {
             return;
         }
         Membre membre = new Membre();
         membre.setTontine(tontine);
         membre.setUtilisateur(auteur);
-        membre.setRoleGroupe(RoleGroupe.ADMINISTRATEUR);
+        membre.setRoleGroupe(RoleGroupe.GESTIONNAIRE);
         membre.setOrdreTour(1);
         membre.setStatut("ACTIF");
         membreRepository.save(membre);
@@ -103,6 +111,10 @@ public class TontineService {
                     + " membre(s) : la capacite ne peut pas etre reduite a "
                     + req.nombreMembres() + ".");
         }
+        // Une augmentation qui franchit le plafond exige que tous les membres
+        // deja inscrits soient verifies.
+        deplafonnement.exigerAugmentationAutorisee(t, req.montantCotisation(), req.nombreMembres());
+
         appliquer(t, req);
         if (req.statut() != null) {
             t.setStatut(req.statut());

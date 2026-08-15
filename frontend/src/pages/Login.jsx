@@ -18,8 +18,8 @@ export default function Login() {
   const emplacement = useLocation()
 
   const [etape, setEtape] = useState('identifiants') // 'identifiants' | 'otp'
-  const [email, setEmail] = useState('')
-  const [motDePasse, setMotDePasse] = useState('')
+  const [telephone, setTelephone] = useState('')
+  const [codePin, setCodePin] = useState('')
   const [code, setCode] = useState('')
   const [erreur, setErreur] = useState(null)
   const [succes, setSucces] = useState('')
@@ -35,7 +35,7 @@ export default function Login() {
     setErreur(null)
     setEnvoi(true)
     try {
-      const message = await demanderCode({ email: email.trim(), motDePasse })
+      const message = await demanderCode({ telephone: telephone.trim(), codePin })
       setSucces(typeof message === 'string' ? message : 'Un code de vérification vous a été envoyé.')
       setEtape('otp')
     } catch (e) {
@@ -50,7 +50,7 @@ export default function Login() {
     setErreur(null)
     setEnvoi(true)
     try {
-      await validerCode({ email: email.trim(), code: code.trim() })
+      await validerCode({ telephone: telephone.trim(), code: code.trim() })
       navigate(emplacement.state?.depuis || '/tableau-de-bord', { replace: true })
     } catch (e) {
       setErreur(
@@ -94,23 +94,23 @@ export default function Login() {
         {etape === 'identifiants' ? (
           <form onSubmit={soumettreIdentifiants} noValidate>
             <Field
-              label="Adresse e-mail"
-              nom="email"
-              type="email"
-              valeur={email}
-              onChange={(e) => setEmail(e.target.value)}
-              erreur={erreur?.champs?.email}
+              label="Numéro de téléphone"
+              nom="telephone"
+              type="tel"
+              valeur={telephone}
+              onChange={(e) => setTelephone(e.target.value)}
+              erreur={erreur?.champs?.telephone}
               autoComplete="username"
               placeholder="prenom.nom@exemple.sn"
               requis
             />
             <Field
-              label="Mot de passe"
-              nom="motDePasse"
+              label="Code PIN (4 chiffres)"
+              nom="codePin"
               type="password"
-              valeur={motDePasse}
-              onChange={(e) => setMotDePasse(e.target.value)}
-              erreur={erreur?.champs?.motDePasse}
+              valeur={codePin}
+              onChange={(e) => setCodePin(e.target.value)}
+              erreur={erreur?.champs?.codePin}
               autoComplete="current-password"
               requis
             />
@@ -119,7 +119,7 @@ export default function Login() {
               variante="principal"
               bloc
               chargement={envoi}
-              disabled={!email || !motDePasse}
+              disabled={!telephone || !codePin}
             >
               Se connecter
             </Button>
@@ -139,7 +139,7 @@ export default function Login() {
                 valeur={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 erreur={erreur?.champs?.code}
-                aide={`Code envoyé à ${email}. Il expire au bout de 5 minutes.`}
+                aide={`Code envoyé par SMS au ${telephone}. Il expire au bout de 5 minutes.`}
                 autoFocus
                 requis
               />

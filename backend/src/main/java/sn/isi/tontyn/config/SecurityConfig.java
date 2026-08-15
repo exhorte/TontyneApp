@@ -57,7 +57,8 @@ public class SecurityConfig {
                     .accessDeniedHandler(accessDeniedHandler()))
             .authorizeHttpRequests(auth -> {
                 // /me requiert un jeton valide : declare AVANT le permitAll /api/auth/**
-                auth.requestMatchers("/api/auth/me").authenticated();
+                auth.requestMatchers("/api/auth/me", "/api/auth/email/**", "/api/auth/email")
+                        .authenticated();
                 auth.requestMatchers("/api/auth/**").permitAll();
                 if (h2ConsoleEnabled) {
                     auth.requestMatchers("/h2-console/**").permitAll();

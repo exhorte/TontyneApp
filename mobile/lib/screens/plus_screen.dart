@@ -31,7 +31,7 @@ class PlusScreen extends StatelessWidget {
         child: Row(children: [
           CircleAvatar(
             radius: 22, backgroundColor: Jetons.bleu,
-            child: Text(initiales(u?.email),
+            child: Text(initiales(u?.nomComplet),
                 style: const TextStyle(color: Jetons.blanc, fontWeight: FontWeight.w600)),
           ),
           const SizedBox(width: Jetons.e3),
@@ -40,7 +40,7 @@ class PlusScreen extends StatelessWidget {
               Text(u?.nomComplet ?? '',
                   style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
               const SizedBox(height: 2),
-              Text(u?.email ?? '', style: Theme.of(context).textTheme.bodySmall),
+              Text(u?.telephone ?? '', style: Theme.of(context).textTheme.bodySmall),
               const SizedBox(height: Jetons.e2),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),

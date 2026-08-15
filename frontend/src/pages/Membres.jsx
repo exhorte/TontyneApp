@@ -198,7 +198,7 @@ export default function Membres() {
               rendu: (m) => (
                 <>
                   <div className="cellule-principale">{m.nomComplet}</div>
-                  <div className="cellule-secondaire">{m.email}</div>
+                  <div className="cellule-secondaire">{m.telephone}</div>
                 </>
               ),
             },
@@ -325,7 +325,7 @@ export default function Membres() {
             erreur={erreurFormulaire?.champs?.utilisateurId}
             options={[
               { valeur: '', libelle: '— Choisir un utilisateur —' },
-              ...utilisateurs.map((u) => ({ valeur: String(u.id), libelle: `${u.nomComplet} — ${u.email}` })),
+              ...utilisateurs.map((u) => ({ valeur: String(u.id), libelle: `${u.nomComplet} — ${u.telephone}` })),
             ]}
             aide="Sélectionnez le compte à ajouter au groupe."
             requis

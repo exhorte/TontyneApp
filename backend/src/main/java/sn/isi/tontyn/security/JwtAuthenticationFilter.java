@@ -36,10 +36,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
             if (jwtService.isValid(token)) {
-                String email = jwtService.extractEmail(token);
-                utilisateurRepository.findByEmail(email).ifPresent(u -> {
+                String identifiant = jwtService.extractIdentifiant(token);
+                utilisateurRepository.findByTelephone(identifiant).ifPresent(u -> {
                     var auth = new UsernamePasswordAuthenticationToken(
-                            email, null,
+                            identifiant, null,
                             List.of(new SimpleGrantedAuthority("ROLE_" + u.getRole().name())));
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 });

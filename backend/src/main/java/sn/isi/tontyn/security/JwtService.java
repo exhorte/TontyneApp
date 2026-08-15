@@ -24,10 +24,11 @@ public class JwtService {
     }
 
     /** Le jeton porte desormais l'identifiant numerique, l'e-mail (sub) et le role. */
-    public String generateToken(Long id, String email, String role) {
+    /** Le sujet du jeton porte l'identifiant du compte : son numero de telephone. */
+    public String generateToken(Long id, String identifiant, String role) {
         Date now = new Date();
         return Jwts.builder()
-                .subject(email)
+                .subject(identifiant)
                 .claim("id", id)
                 .claim("role", role)
                 .issuedAt(now)
@@ -41,7 +42,7 @@ public class JwtService {
                 .parseSignedClaims(token).getPayload();
     }
 
-    public String extractEmail(String token) {
+    public String extractIdentifiant(String token) {
         return claims(token).getSubject();
     }
 

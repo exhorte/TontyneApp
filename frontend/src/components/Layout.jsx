@@ -85,10 +85,10 @@ export default function Layout() {
         <div className="barre-sup__espace" />
 
         <div className="barre-sup__utilisateur">
-          <div className="avatar" aria-hidden="true">{initiales(utilisateur?.email)}</div>
+          <div className="avatar" aria-hidden="true">{initiales(utilisateur?.telephone)}</div>
           <div className="barre-sup__identite">
-            <span className="barre-sup__email" title={utilisateur?.email}>
-              {utilisateur?.email}
+            <span className="barre-sup__email" title={utilisateur?.telephone}>
+              {utilisateur?.telephone}
             </span>
             <span className="barre-sup__role">{LIBELLES_ROLE[role] || role}</span>
           </div>

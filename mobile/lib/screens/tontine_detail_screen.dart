@@ -178,7 +178,7 @@ class _TontineDetailScreenState extends State<TontineDetailScreen>
                     fontSize: 12, color: Jetons.bleu, fontWeight: FontWeight.w600)),
           ),
           titre: mb.nomComplet ?? '—',
-          sousTitre: mb.email,
+          sousTitre: mb.telephone,
           fin: BadgeStatut(mb.statut),
         )).toList());
   }
@@ -263,7 +263,7 @@ class _AjoutMembreState extends State<_AjoutMembre> {
             decoration: const InputDecoration(labelText: 'Utilisateur'),
             items: _comptes.map((u) => DropdownMenuItem(
                 value: u.id,
-                child: Text('${u.nomComplet} — ${u.email}',
+                child: Text('${u.nomComplet} — ${u.telephone}',
                     overflow: TextOverflow.ellipsis))).toList(),
             onChanged: (v) => setState(() => _choisi = v),
           ),
@@ -273,7 +273,7 @@ class _AjoutMembreState extends State<_AjoutMembre> {
             decoration: const InputDecoration(labelText: 'Rôle dans le groupe'),
             items: const [
               DropdownMenuItem(value: 'MEMBRE', child: Text('Membre')),
-              DropdownMenuItem(value: 'ADMINISTRATEUR', child: Text('Administrateur de la tontine')),
+              DropdownMenuItem(value: 'GESTIONNAIRE', child: Text('Gestionnaire de la tontine')),
             ],
             onChanged: (v) => setState(() => _role = v ?? 'MEMBRE'),
           ),

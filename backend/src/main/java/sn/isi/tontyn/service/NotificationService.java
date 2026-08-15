@@ -20,13 +20,16 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final EmailService emailService;
+    private final EnvoiSmsService smsService;
 
     public NotificationService(NotificationRepository notificationRepository,
                                UtilisateurRepository utilisateurRepository,
-                               EmailService emailService) {
+                               EmailService emailService,
+                               EnvoiSmsService smsService) {
         this.notificationRepository = notificationRepository;
         this.utilisateurRepository = utilisateurRepository;
         this.emailService = emailService;
+        this.smsService = smsService;
     }
 
     @Transactional(readOnly = true)
@@ -63,11 +66,19 @@ public class NotificationService {
         notification.setMessage(message);
         notification.setCanal(canal);
 
-        if ("EMAIL".equals(canal)) {
+        // L'adresse electronique etant desormais facultative, le canal demande
+        // n'est pas toujours disponible : on retombe alors sur le message court,
+        // le numero de telephone etant, lui, toujours renseigne.
+        boolean emailUtilisable = destinataire.isEmailVerifie() && destinataire.getEmail() != null;
+
+        if ("EMAIL".equals(canal) && emailUtilisable) {
             emailService.envoyer(destinataire.getEmail(), "Tontyn - " + type, message);
             notification.setStatut("ENVOYEE");
+        } else if (destinataire.getTelephone() != null) {
+            smsService.envoyer(destinataire.getTelephone(), "Tontyn : " + message);
+            notification.setCanal("SMS");
+            notification.setStatut("ENVOYEE");
         } else {
-            // SMS / PUSH : passerelle non branchee a ce stade, la trace est conservee.
             notification.setStatut("EN_ATTENTE");
         }
         return notificationRepository.save(notification);

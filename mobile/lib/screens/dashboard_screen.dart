@@ -81,7 +81,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           padding: const EdgeInsets.fromLTRB(Jetons.e4, Jetons.e5, Jetons.e4, Jetons.e2),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Bonjour ${auth.utilisateur!.prenom.isEmpty
-                    ? auth.utilisateur!.email.split('@').first
+                    ? auth.utilisateur!.telephone
                     : auth.utilisateur!.prenom}',
                 style: t.headlineMedium),
             const SizedBox(height: 2),

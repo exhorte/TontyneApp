@@ -16,9 +16,8 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _prenom = TextEditingController();
   final _nom = TextEditingController();
-  final _email = TextEditingController();
   final _telephone = TextEditingController();
-  final _motDePasse = TextEditingController();
+  final _codePin = TextEditingController();
   final _confirmation = TextEditingController();
   bool _envoi = false;
   String? _erreur;
@@ -26,14 +25,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
-    for (final c in [_prenom, _nom, _email, _telephone, _motDePasse, _confirmation]) {
+    for (final c in [_prenom, _nom, _telephone, _codePin, _confirmation]) {
       c.dispose();
     }
     super.dispose();
   }
 
   Future<void> _soumettre() async {
-    if (_motDePasse.text != _confirmation.text) {
+    if (_codePin.text != _confirmation.text) {
       setState(() => _champsEnErreur = {'confirmation': 'Les mots de passe ne correspondent pas.'});
       return;
     }
@@ -42,9 +41,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await context.read<AuthService>().inscrire({
         'prenom': _prenom.text.trim(),
         'nom': _nom.text.trim(),
-        'email': _email.text.trim(),
         'telephone': _telephone.text.trim(),
-        'motDePasse': _motDePasse.text,
+        'codePin': _codePin.text,
       });
       if (!mounted) return;
       Navigator.pop(context);
@@ -79,12 +77,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
           _champ('Prénom', _prenom, cle: 'prenom'),
           _champ('Nom', _nom, cle: 'nom'),
-          _champ('Adresse e-mail', _email, cle: 'email', clavier: TextInputType.emailAddress),
-          _champ('Téléphone', _telephone, cle: 'telephone',
-              clavier: TextInputType.phone, aide: 'Facultatif. Format : +221 77 000 00 00'),
-          _champ('Mot de passe', _motDePasse, cle: 'motDePasse',
-              masque: true, aide: '8 caractères minimum'),
-          _champ('Confirmation', _confirmation, cle: 'confirmation', masque: true),
+          _champ('Numéro de téléphone', _telephone, cle: 'telephone',
+              clavier: TextInputType.phone, aide: 'Il servira d\'identifiant. Format : 77 123 45 67'),
+          _champ('Code PIN (4 chiffres)', _codePin, cle: 'codePin',
+              masque: true, clavier: TextInputType.number,
+              aide: 'Exactement 4 chiffres. Il remplace le mot de passe.'),
+          _champ('Confirmez le code PIN', _confirmation, cle: 'confirmation',
+              masque: true, clavier: TextInputType.number),
 
           const SizedBox(height: Jetons.e4),
           FilledButton(

@@ -52,17 +52,17 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Etape 1 : verification du mot de passe, envoi du code OTP.
-  Future<String> demanderCode(String email, String motDePasse) async {
+  /// Etape 1 : verification du code PIN, envoi du code par message court.
+  Future<String> demanderCode(String telephone, String codePin) async {
     final r = await ApiService.instance
-        .post('/auth/login', corps: {'email': email, 'motDePasse': motDePasse});
+        .post('/auth/login', corps: {'telephone': telephone, 'codePin': codePin});
     return r.toString();
   }
 
-  /// Etape 2 : verification du code et ouverture de la session.
-  Future<void> validerCode(String email, String code) async {
+  /// Etape 2 : verification du code recu et ouverture de la session.
+  Future<void> validerCode(String telephone, String code) async {
     final r = await ApiService.instance
-        .post('/auth/verify-otp', corps: {'email': email, 'code': code});
+        .post('/auth/verify-otp', corps: {'telephone': telephone, 'code': code});
     final jeton = (r is Map ? r['token'] : null)?.toString();
     if (jeton == null || jeton.isEmpty) {
       throw ErreurApi('Le jeton renvoyé par le serveur est invalide.');
@@ -78,6 +78,35 @@ class AuthService extends ChangeNotifier {
   Future<String> inscrire(Map<String, dynamic> donnees) async {
     final r = await ApiService.instance.post('/auth/register', corps: donnees);
     return r.toString();
+  }
+
+  /// Associe une adresse electronique : un code part vers celle-ci.
+  Future<String> demanderAjoutEmail(String email) async {
+    final r = await ApiService.instance.post('/auth/email', corps: {'email': email});
+    return r.toString();
+  }
+
+  /// Confirme l'adresse en attente au moyen du code recu.
+  Future<void> confirmerEmail(String code) async {
+    final d = await ApiService.instance
+        .post('/auth/email/confirmer', corps: {'code': code});
+    _utilisateur = Utilisateur.depuisJson(Map<String, dynamic>.from(d));
+    notifyListeners();
+  }
+
+  /// Dissocie l'adresse electronique du compte.
+  Future<void> retirerEmail() async {
+    final d = await ApiService.instance.delete('/auth/email');
+    _utilisateur = Utilisateur.depuisJson(Map<String, dynamic>.from(d));
+    notifyListeners();
+  }
+
+  /// Recharge le profil depuis le serveur.
+  Future<void> rafraichirProfil() async {
+    if (!connecte) return;
+    final d = await ApiService.instance.get('/auth/me');
+    _utilisateur = Utilisateur.depuisJson(Map<String, dynamic>.from(d));
+    notifyListeners();
   }
 
   Future<void> deconnexion() async {

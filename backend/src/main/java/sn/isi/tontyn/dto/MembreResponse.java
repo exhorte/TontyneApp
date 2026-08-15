@@ -11,7 +11,7 @@ public record MembreResponse(Long id,
                              String statut,
                              Long utilisateurId,
                              String nomComplet,
-                             String email,
+                             String telephone,
                              Long tontineId,
                              String tontineNom) {
 
@@ -19,7 +19,7 @@ public record MembreResponse(Long id,
         var u = m.getUtilisateur();
         return new MembreResponse(m.getId(), m.getDateAdhesion(), m.getRoleGroupe(),
                 m.getOrdreTour(), m.getStatut(),
-                u.getId(), u.getPrenom() + " " + u.getNom(), u.getEmail(),
+                u.getId(), u.getPrenom() + " " + u.getNom(), u.getTelephone(),
                 m.getTontine().getId(), m.getTontine().getNom());
     }
 }

@@ -76,7 +76,7 @@ class _MembresScreenState extends State<MembresScreen> {
                                       fontWeight: FontWeight.w600)),
                             ),
                             titre: mb.nomComplet ?? '—',
-                            sousTitre: '${mb.tontineNom ?? ''}\n${mb.email ?? ''}',
+                            sousTitre: '${mb.tontineNom ?? ''}\n${mb.telephone ?? ''}',
                             fin: BadgeStatut(mb.statut),
                             onTap: peutGerer ? () => _basculer(mb) : null,
                           )).toList()),

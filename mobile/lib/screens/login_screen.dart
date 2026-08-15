@@ -15,15 +15,15 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _email = TextEditingController();
-  final _motDePasse = TextEditingController();
+  final _telephone = TextEditingController();
+  final _codePin = TextEditingController();
   final _code = TextEditingController();
   bool _etapeCode = false, _envoi = false;
   String? _erreur, _info;
 
   @override
   void dispose() {
-    _email.dispose(); _motDePasse.dispose(); _code.dispose();
+    _telephone.dispose(); _codePin.dispose(); _code.dispose();
     super.dispose();
   }
 
@@ -31,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() { _envoi = true; _erreur = null; });
     try {
       final msg = await context.read<AuthService>()
-          .demanderCode(_email.text.trim(), _motDePasse.text);
+          .demanderCode(_telephone.text.trim(), _codePin.text);
       if (!mounted) return;
       setState(() { _etapeCode = true; _info = msg; });
     } on ErreurApi catch (e) {
@@ -45,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() { _envoi = true; _erreur = null; });
     try {
       await context.read<AuthService>()
-          .validerCode(_email.text.trim(), _code.text.trim());
+          .validerCode(_telephone.text.trim(), _code.text.trim());
     } on ErreurApi catch (e) {
       if (mounted) setState(() => _erreur = e.message);
     } finally {
@@ -93,13 +93,14 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
 
             if (!_etapeCode) ...[
-              _champ('Adresse e-mail', _email,
-                  clavier: TextInputType.emailAddress, indice: 'prenom.nom@exemple.sn'),
+              _champ('Numéro de téléphone', _telephone,
+                  clavier: TextInputType.phone, indice: '77 123 45 67'),
               const SizedBox(height: Jetons.e4),
-              _champ('Mot de passe', _motDePasse, masque: true),
+              _champ('Code PIN', _codePin, masque: true,
+                  clavier: TextInputType.number, indice: '4 chiffres'),
               const SizedBox(height: Jetons.e5),
               _boutonPrincipal('Se connecter',
-                  actif: _email.text.isNotEmpty || true, action: _demanderCode),
+                  actif: true, action: _demanderCode),
               const SizedBox(height: Jetons.e4),
               Center(
                 child: Wrap(alignment: WrapAlignment.center, children: [
@@ -120,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
               _champ('Code de vérification (6 chiffres)', _code,
                   clavier: TextInputType.number, maxLongueur: 6),
               const SizedBox(height: Jetons.e2),
-              Text('Code envoyé à ${_email.text}. Il expire au bout de 5 minutes.',
+              Text('Code envoyé par SMS au ${_telephone.text}. Il expire au bout de 5 minutes.',
                   style: t.bodySmall),
               const SizedBox(height: Jetons.e5),
               _boutonPrincipal('Valider et accéder', action: _valider),

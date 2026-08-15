@@ -10,9 +10,8 @@ import Icone from '../components/Icone.jsx'
 const FORMULAIRE_VIDE = {
   prenom: '',
   nom: '',
-  email: '',
   telephone: '',
-  motDePasse: '',
+  codePin: '',
   confirmation: '',
 }
 
@@ -37,14 +36,13 @@ export default function Register() {
     const erreurs = {}
     if (!formulaire.prenom.trim()) erreurs.prenom = 'Le prénom est obligatoire.'
     if (!formulaire.nom.trim()) erreurs.nom = 'Le nom est obligatoire.'
-    if (!formulaire.email.trim()) erreurs.email = "L'e-mail est obligatoire."
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formulaire.email.trim())) {
-      erreurs.email = "Format d'e-mail invalide."
+    if (!formulaire.telephone.trim()) {
+      erreurs.telephone = 'Le numéro de téléphone est obligatoire.'
     }
-    if (formulaire.motDePasse.length < 8) {
-      erreurs.motDePasse = 'Le mot de passe doit contenir au moins 8 caractères.'
+    if (!/^\d{4}$/.test(formulaire.codePin)) {
+      erreurs.codePin = 'Le code PIN doit comporter exactement 4 chiffres.'
     }
-    if (formulaire.confirmation !== formulaire.motDePasse) {
+    if (formulaire.confirmation !== formulaire.codePin) {
       erreurs.confirmation = 'Les deux mots de passe ne correspondent pas.'
     }
     if (formulaire.telephone && !/^[+0-9][0-9 ]{7,19}$/.test(formulaire.telephone.trim())) {
@@ -64,9 +62,8 @@ export default function Register() {
       await authApi.inscrire({
         nom: formulaire.nom.trim(),
         prenom: formulaire.prenom.trim(),
-        email: formulaire.email.trim(),
-        motDePasse: formulaire.motDePasse,
         telephone: formulaire.telephone.trim(),
+        codePin: formulaire.codePin,
       })
       navigate('/login', {
         state: { messageInscription: 'Compte créé avec succès. Vous pouvez vous connecter.' },
@@ -122,36 +119,27 @@ export default function Register() {
           </div>
 
           <Field
-            label="Adresse e-mail"
-            nom="email"
-            type="email"
-            valeur={formulaire.email}
-            onChange={majChamp('email')}
-            erreur={erreurChamp('email')}
-            autoComplete="email"
-            requis
-          />
-
-          <Field
-            label="Téléphone"
+            label="Numéro de téléphone"
             nom="telephone"
             type="tel"
             valeur={formulaire.telephone}
             onChange={majChamp('telephone')}
             erreur={erreurChamp('telephone')}
-            aide="Facultatif. Format attendu : +221 77 000 00 00"
+            aide="Il servira d'identifiant. Format : 77 123 45 67"
             autoComplete="tel"
+            requis
           />
 
           <div className="grille-champs">
             <Field
-              label="Mot de passe"
-              nom="motDePasse"
+              label="Code PIN (4 chiffres)"
+              nom="codePin"
               type="password"
-              valeur={formulaire.motDePasse}
-              onChange={majChamp('motDePasse')}
-              erreur={erreurChamp('motDePasse')}
-              aide="8 caractères minimum"
+              inputMode="numeric"
+              valeur={formulaire.codePin}
+              onChange={majChamp('codePin')}
+              erreur={erreurChamp('codePin')}
+              aide="Exactement 4 chiffres. Il remplace le mot de passe."
               autoComplete="new-password"
               requis
             />

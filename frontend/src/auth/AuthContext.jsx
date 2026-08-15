@@ -8,8 +8,8 @@ const AuthContext = createContext(null)
 
 /**
  * Decode le JWT emis par le backend.
- * Claims : sub = e-mail, role = ADMINISTRATEUR | MEMBRE, exp (secondes).
- * @returns {{ email: string, role: string, expiration: number } | null} null si absent/expire/illisible.
+ * Claims : sub = numero de telephone, role = ADMINISTRATEUR | MEMBRE, exp (secondes).
+ * @returns {{ telephone: string, role: string, expiration: number } | null} null si absent/expire/illisible.
  */
 function decoderToken(token) {
   if (!token) return null
@@ -18,7 +18,7 @@ function decoderToken(token) {
     const expirationMs = charge.exp * 1000
     if (Number.isFinite(expirationMs) && expirationMs <= Date.now()) return null
     return {
-      email: charge.sub,
+      telephone: charge.sub,
       role: charge.role,
       id: charge.id ?? null,
       expiration: expirationMs,
@@ -74,12 +74,12 @@ export function AuthProvider({ children }) {
    */
   const [utilisateurId, setUtilisateurId] = useState(() => decoderToken(stockageToken.lire())?.id ?? null)
 
-  const resoudreUtilisateurId = useCallback(async (email) => {
-    if (!email) return null
+  const resoudreUtilisateurId = useCallback(async (telephone) => {
+    if (!telephone) return null
     try {
       const membres = await membresApi.lister()
       const cible = membres.find(
-        (m) => m.email?.toLowerCase() === email.toLowerCase(),
+        (m) => m.telephone === telephone,
       )
       return cible?.utilisateurId ?? null
     } catch {
@@ -89,7 +89,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     let annule = false
-    if (!utilisateur?.email) {
+    if (!utilisateur?.telephone) {
       setUtilisateurId(null)
       return undefined
     }
@@ -99,13 +99,13 @@ export function AuthProvider({ children }) {
       return undefined
     }
     // Repli pour un ancien jeton sans claim `id`.
-    resoudreUtilisateurId(utilisateur.email).then((id) => {
+    resoudreUtilisateurId(utilisateur.telephone).then((id) => {
       if (!annule) setUtilisateurId(id)
     })
     return () => {
       annule = true
     }
-  }, [utilisateur?.email, utilisateur?.id, resoudreUtilisateurId])
+  }, [utilisateur?.telephone, utilisateur?.id, resoudreUtilisateurId])
 
   /** Etape 1 du 2FA : verifie le mot de passe et declenche l'envoi du code OTP. */
   const demanderCode = useCallback(
@@ -114,8 +114,8 @@ export function AuthProvider({ children }) {
   )
 
   /** Etape 2 du 2FA : echange le code contre un JWT et ouvre la session. */
-  const validerCode = useCallback(async ({ email, code }) => {
-    const reponse = await authApi.verifierOtp({ email, code })
+  const validerCode = useCallback(async ({ telephone, code }) => {
+    const reponse = await authApi.verifierOtp({ telephone, code })
     const token = reponse?.token
     const profil = decoderToken(token)
     if (!token || !profil) {
@@ -142,7 +142,7 @@ export function AuthProvider({ children }) {
       deconnexion,
       /** Force une nouvelle tentative de resolution (apres un ajout de membre). */
       rafraichirUtilisateurId: async () => {
-        const id = await resoudreUtilisateurId(utilisateur?.email)
+        const id = await resoudreUtilisateurId(utilisateur?.telephone)
         setUtilisateurId(id)
         return id
       },

@@ -15,7 +15,7 @@ public class Membre {
     private Long id;
 
     private LocalDate dateAdhesion = LocalDate.now();
-    /** Role au sein de cette tontine : ADMINISTRATEUR ou MEMBRE (voir RoleGroupe). */
+    /** Role au sein de cette tontine : GESTIONNAIRE ou MEMBRE (voir RoleGroupe). */
     private String roleGroupe = RoleGroupe.MEMBRE;
     private int ordreTour;
     private String statut = "ACTIF";

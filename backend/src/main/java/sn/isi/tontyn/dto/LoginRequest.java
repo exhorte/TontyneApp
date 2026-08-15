@@ -1,12 +1,15 @@
 package sn.isi.tontyn.dto;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
+/** Premier facteur : numero de telephone et code PIN. */
 public record LoginRequest(
-        @NotBlank(message = "L'e-mail est obligatoire.")
-        @Email(message = "Format d'e-mail invalide.")
-        String email,
+        @NotBlank(message = "Le numero de telephone est obligatoire.")
+        @Pattern(regexp = "^[+0-9][0-9 .\\-()]{6,19}$",
+                 message = "Numero de telephone invalide.")
+        String telephone,
 
-        @NotBlank(message = "Le mot de passe est obligatoire.")
-        String motDePasse) {}
+        @NotBlank(message = "Le code PIN est obligatoire.")
+        @Pattern(regexp = "\\d{4}", message = "Le code PIN doit comporter exactement 4 chiffres.")
+        String codePin) {}
