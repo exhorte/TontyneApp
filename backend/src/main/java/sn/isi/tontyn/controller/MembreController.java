@@ -9,8 +9,10 @@ import sn.isi.tontyn.dto.AjoutMembreRequest;
 import sn.isi.tontyn.dto.CotisationResponse;
 import sn.isi.tontyn.dto.MembreRequest;
 import sn.isi.tontyn.dto.MembreResponse;
+import sn.isi.tontyn.dto.ScoreFiabiliteResponse;
 import sn.isi.tontyn.service.CotisationService;
 import sn.isi.tontyn.service.MembreService;
+import sn.isi.tontyn.service.ScoreFiabiliteService;
 
 import java.util.List;
 
@@ -20,10 +22,13 @@ public class MembreController {
 
     private final MembreService membreService;
     private final CotisationService cotisationService;
+    private final ScoreFiabiliteService scoreFiabiliteService;
 
-    public MembreController(MembreService membreService, CotisationService cotisationService) {
+    public MembreController(MembreService membreService, CotisationService cotisationService,
+                            ScoreFiabiliteService scoreFiabiliteService) {
         this.membreService = membreService;
         this.cotisationService = cotisationService;
+        this.scoreFiabiliteService = scoreFiabiliteService;
     }
 
     @GetMapping
@@ -46,6 +51,18 @@ public class MembreController {
     @GetMapping("/{id}/cotisations")
     public List<CotisationResponse> listerCotisations(@PathVariable Long id) {
         return cotisationService.listerParMembre(id);
+    }
+
+    /**
+     * Detail du score de fiabilite de paiement, decomposition critere par
+     * critere comprise. Reserve au gestionnaire de la tontine du membre, ou
+     * au membre lui-meme : le score d'un membre ne regarde pas les autres
+     * membres du groupe.
+     */
+    @GetMapping("/{id}/score")
+    @PreAuthorize("@secu.gereMembre(#id) or @secu.estSonPropreMembre(#id)")
+    public ScoreFiabiliteResponse obtenirScore(@PathVariable Long id) {
+        return scoreFiabiliteService.calculerDetail(id);
     }
 
     @PostMapping

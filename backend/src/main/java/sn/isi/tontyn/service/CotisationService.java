@@ -120,6 +120,30 @@ public class CotisationService {
         cotisationRepository.save(cotisation);
     }
 
+    /**
+     * Leve la penalite de retard d'une cotisation.
+     *
+     * <p>Contrepoids indispensable a l'automatisme de la sanction : le calcul
+     * est uniforme pour tous, mais un gestionnaire doit pouvoir tenir compte
+     * d'une circonstance particuliere — maladie, deuil, defaillance de
+     * l'operateur de paiement. Le statut {@code EN_RETARD} n'est pas efface
+     * pour autant : la cotisation reste due, et l'historique du retard
+     * demeure consultable.</p>
+     */
+    public CotisationResponse leverPenalite(Long id) {
+        Cotisation cotisation = chargerCotisation(id);
+        if (cotisation.getPenalite() == 0) {
+            throw new ConflitMetierException(
+                    "Aucune penalite n'est appliquee a cette cotisation.");
+        }
+        if ("PAYEE".equals(cotisation.getStatut())) {
+            throw new ConflitMetierException("La cotisation est reglee : la penalite a ete "
+                    + "acquittee et ne peut plus etre levee.");
+        }
+        cotisation.setPenalite(0);
+        return CotisationResponse.from(cotisationRepository.save(cotisation));
+    }
+
     @Transactional(readOnly = true)
     public Cotisation chargerCotisation(Long id) {
         return cotisationRepository.findById(id)

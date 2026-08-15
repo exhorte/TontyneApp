@@ -29,11 +29,20 @@ public class CotisationController {
     @GetMapping
     public List<CotisationResponse> lister(@RequestParam(required = false) Long cycleId,
                                            @RequestParam(required = false) Long membreId,
-                                           @RequestParam(required = false) Long tontineId) {
-        if (cycleId != null)   return cotisationService.listerParCycle(cycleId);
-        if (membreId != null)  return cotisationService.listerParMembre(membreId);
-        if (tontineId != null) return cotisationService.listerParTontine(tontineId);
-        return cotisationService.lister();
+                                           @RequestParam(required = false) Long tontineId,
+                                           @RequestParam(required = false) String statut) {
+        List<CotisationResponse> resultat;
+        if (cycleId != null)        resultat = cotisationService.listerParCycle(cycleId);
+        else if (membreId != null)  resultat = cotisationService.listerParMembre(membreId);
+        else if (tontineId != null) resultat = cotisationService.listerParTontine(tontineId);
+        else                        resultat = cotisationService.lister();
+
+        // Filtre optionnel, utile au tableau de bord du gestionnaire :
+        // GET /api/cotisations?tontineId=..&statut=EN_RETARD
+        if (statut != null) {
+            resultat = resultat.stream().filter(c -> statut.equals(c.statut())).toList();
+        }
+        return resultat;
     }
 
     @GetMapping("/{id}")
@@ -51,6 +60,16 @@ public class CotisationController {
     @ResponseStatus(HttpStatus.CREATED)
     public CotisationResponse enregistrer(@Valid @RequestBody CotisationRequest req) {
         return cotisationService.enregistrer(req);
+    }
+
+    /**
+     * Endpoint metier : leve la penalite de retard, au cas par cas.
+     * Reserve au gestionnaire de la tontine concernee.
+     */
+    @PostMapping("/{id}/penalite/lever")
+    @PreAuthorize("@secu.gereCotisation(#id)")
+    public CotisationResponse leverPenalite(@PathVariable Long id) {
+        return cotisationService.leverPenalite(id);
     }
 
     @PutMapping("/{id}")

@@ -161,6 +161,9 @@ public class TontineService {
         if (req.dateDebut() != null) {
             t.setDateDebut(req.dateDebut());
         }
+        if (req.tauxPenalite() != null) {
+            t.setTauxPenalite(req.tauxPenalite());
+        }
     }
 
     private TontineResponse versReponse(Tontine t) {

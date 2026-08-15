@@ -24,6 +24,8 @@ public record TontineResponse(Long id,
                               LocalDate dateCreation,
                               LocalDate dateDebut,
                               String statut,
+                              /** Penalite de retard, en pourcentage de la cotisation ; 0 = aucune. */
+                              double tauxPenalite,
                               /** L'utilisateur courant administre-t-il cette tontine ? */
                               boolean administrateur,
                               /** L'utilisateur courant participe-t-il a cette tontine ? */
@@ -34,6 +36,6 @@ public record TontineResponse(Long id,
         return new TontineResponse(t.getId(), t.getNom(), t.getDescription(),
                 t.getMontantCotisation(), t.getPeriodicite(), t.getNombreMembres(),
                 membresInscrits, cycles, t.getDateCreation(), t.getDateDebut(), t.getStatut(),
-                administrateur, membre);
+                t.getTauxPenalite(), administrateur, membre);
     }
 }

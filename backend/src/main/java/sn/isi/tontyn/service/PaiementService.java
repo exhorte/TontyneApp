@@ -74,7 +74,8 @@ public class PaiementService {
 
         Paiement paiement = new Paiement();
         paiement.setCotisation(cotisation);
-        paiement.setMontant(cotisation.getMontant());
+        // Somme exigible, penalite de retard comprise le cas echeant.
+        paiement.setMontant(cotisation.montantDu());
         paiement.setMethode(req.methode());
         paiement.setReference(req.reference() != null && !req.reference().isBlank()
                 ? req.reference() : genererReference(req.methode()));

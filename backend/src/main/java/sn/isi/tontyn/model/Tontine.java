@@ -30,4 +30,17 @@ public class Tontine {
      */
     private LocalDate dateDebut;
     private String statut = "ACTIVE";
+
+    /**
+     * Taux de penalite applique a une cotisation passee en retard, exprime en
+     * pourcentage du montant de la cotisation.
+     *
+     * <p>Zero par defaut : une tontine ne sanctionne pas ses retardataires tant
+     * que son gestionnaire n'a pas fixe ce taux. Ce choix garde le comportement
+     * des tontines deja enregistrees inchange, et surtout il reflete la realite
+     * du terrain : le bareme des penalites releve de la convention passee entre
+     * les membres au moment de la constitution du groupe, non d'une regle
+     * imposee par la plateforme.</p>
+     */
+    private double tauxPenalite = 0;
 }

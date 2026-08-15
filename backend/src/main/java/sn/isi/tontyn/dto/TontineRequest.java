@@ -1,9 +1,11 @@
 package sn.isi.tontyn.dto;
 
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
@@ -36,5 +38,15 @@ public record TontineRequest(
          * Date de demarrage effectif. Facultative : en son absence, la tontine
          * demarre le jour de sa creation.
          */
-        LocalDate dateDebut
+        LocalDate dateDebut,
+
+        /**
+         * Penalite de retard, en pourcentage du montant de la cotisation.
+         * Facultative : absente ou nulle, la tontine ne sanctionne pas.
+         * Le plafond de 50 % evite qu'une saisie erronee ne produise une
+         * penalite superieure a la cotisation elle-meme.
+         */
+        @PositiveOrZero(message = "Le taux de penalite ne peut pas etre negatif.")
+        @DecimalMax(value = "50.0", message = "Le taux de penalite ne peut pas depasser 50 %.")
+        Double tauxPenalite
 ) {}

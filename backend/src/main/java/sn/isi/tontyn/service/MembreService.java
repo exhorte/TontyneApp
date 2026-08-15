@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import sn.isi.tontyn.dto.AjoutMembreRequest;
 import sn.isi.tontyn.dto.MembreRequest;
 import sn.isi.tontyn.dto.MembreResponse;
+import sn.isi.tontyn.dto.ScoreFiabiliteResponse;
 import sn.isi.tontyn.exception.ConflitMetierException;
 import sn.isi.tontyn.exception.RessourceIntrouvableException;
 import sn.isi.tontyn.model.Membre;
@@ -14,6 +15,7 @@ import sn.isi.tontyn.model.Utilisateur;
 import sn.isi.tontyn.repository.CotisationRepository;
 import sn.isi.tontyn.repository.MembreRepository;
 import sn.isi.tontyn.repository.UtilisateurRepository;
+import sn.isi.tontyn.security.SecuriteTontine;
 
 import java.util.List;
 
@@ -26,40 +28,65 @@ public class MembreService {
     private final CotisationRepository cotisationRepository;
     private final TontineService tontineService;
     private final DeplafonnementService deplafonnement;
+    private final ScoreFiabiliteService scoreFiabiliteService;
+    private final SecuriteTontine securiteTontine;
 
     public MembreService(MembreRepository membreRepository,
                          UtilisateurRepository utilisateurRepository,
                          CotisationRepository cotisationRepository,
                          TontineService tontineService,
-                         DeplafonnementService deplafonnement) {
+                         DeplafonnementService deplafonnement,
+                         ScoreFiabiliteService scoreFiabiliteService,
+                         SecuriteTontine securiteTontine) {
         this.membreRepository = membreRepository;
         this.utilisateurRepository = utilisateurRepository;
         this.cotisationRepository = cotisationRepository;
         this.tontineService = tontineService;
         this.deplafonnement = deplafonnement;
+        this.scoreFiabiliteService = scoreFiabiliteService;
+        this.securiteTontine = securiteTontine;
     }
 
     @Transactional(readOnly = true)
     public List<MembreResponse> lister() {
-        return membreRepository.findAll().stream().map(MembreResponse::from).toList();
+        return membreRepository.findAll().stream().map(this::versReponse).toList();
     }
 
     @Transactional(readOnly = true)
     public List<MembreResponse> listerParTontine(Long tontineId) {
         tontineService.chargerTontine(tontineId);   // 404 si la tontine n'existe pas
         return membreRepository.findByTontineId(tontineId).stream()
-                .map(MembreResponse::from).toList();
+                .map(this::versReponse).toList();
     }
 
     @Transactional(readOnly = true)
     public List<MembreResponse> listerParUtilisateur(Long utilisateurId) {
         return membreRepository.findByUtilisateurId(utilisateurId).stream()
-                .map(MembreResponse::from).toList();
+                .map(this::versReponse).toList();
     }
 
     @Transactional(readOnly = true)
     public MembreResponse obtenir(Long id) {
-        return MembreResponse.from(chargerMembre(id));
+        return versReponse(chargerMembre(id));
+    }
+
+    /**
+     * Construit la reponse d'un membre, score de fiabilite inclus si et
+     * seulement si l'appelant courant est autorise a le consulter : le
+     * gestionnaire de la tontine concernee, ou le membre pour son propre
+     * score (voir PROMPT_SCORE_FIABILITE.md). Dans le cas contraire, le score
+     * est simplement absent de la reponse plutot que de bloquer l'appel :
+     * ces routes de liste restent aujourd'hui accessibles a tout utilisateur
+     * authentifie (limite preexistante, documentee dans ETAT_DU_PROJET.md).
+     */
+    private MembreResponse versReponse(Membre membre) {
+        boolean autorise = securiteTontine.gereMembre(membre.getId())
+                || securiteTontine.estSonPropreMembre(membre.getId());
+        if (!autorise) {
+            return MembreResponse.from(membre);
+        }
+        ScoreFiabiliteResponse resume = scoreFiabiliteService.calculerResume(membre);
+        return MembreResponse.from(membre, resume.score(), resume.niveauConfiance());
     }
 
     public MembreResponse creer(MembreRequest req) {
@@ -103,7 +130,7 @@ public class MembreService {
         membre.setUtilisateur(utilisateur);
         membre.setRoleGroupe(RoleGroupe.normaliser(req.roleGroupe()));
         membre.setOrdreTour(ordreTour);
-        return MembreResponse.from(membreRepository.save(membre));
+        return versReponse(membreRepository.save(membre));
     }
 
     public MembreResponse modifier(Long id, AjoutMembreRequest req) {
@@ -119,7 +146,7 @@ public class MembreService {
             }
             membre.setOrdreTour(req.ordreTour());
         }
-        return MembreResponse.from(membreRepository.save(membre));
+        return versReponse(membreRepository.save(membre));
     }
 
     /** Retire un membre : refuse si des cotisations lui sont deja rattachees. */
@@ -139,13 +166,13 @@ public class MembreService {
             throw new ConflitMetierException("Ce membre est deja suspendu.");
         }
         membre.setStatut("SUSPENDU");
-        return MembreResponse.from(membreRepository.save(membre));
+        return versReponse(membreRepository.save(membre));
     }
 
     public MembreResponse reactiver(Long id) {
         Membre membre = chargerMembre(id);
         membre.setStatut("ACTIF");
-        return MembreResponse.from(membreRepository.save(membre));
+        return versReponse(membreRepository.save(membre));
     }
 
     @Transactional(readOnly = true)
