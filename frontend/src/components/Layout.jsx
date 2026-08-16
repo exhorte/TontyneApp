@@ -15,6 +15,7 @@ const ENTREES_MENU = [
   { chemin: '/paiements', libelle: 'Paiements', icone: 'paiements' },
   { chemin: '/recus', libelle: 'Reçus', icone: 'recus' },
   { chemin: '/notifications', libelle: 'Notifications', icone: 'notifications', compteur: true },
+  { chemin: '/assistant', libelle: 'Assistant', icone: 'assistant' },
 ]
 
 const LIBELLES_ROLE = {

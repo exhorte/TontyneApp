@@ -1952,3 +1952,76 @@ h1, h2, h3, h4 { font-weight: 400; letter-spacing: -0.01em; }
 
 /* Masquer une description vide (evite le tiret orphelin) */
 .cellule-secondaire:empty { display: none; }
+
+/* --- Assistant conversationnel ------------------------------------------- */
+.assistant-panneau {
+  display: flex;
+  flex-direction: column;
+  height: min(640px, 70vh);
+  padding: 20px;
+  gap: 16px;
+}
+.assistant-fil {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+}
+.assistant-bulle {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: var(--rayon-sm);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+.assistant-bulle--utilisateur {
+  align-self: flex-end;
+  background: var(--bleu);
+  color: #fff;
+}
+.assistant-bulle--assistant {
+  align-self: flex-start;
+  background: var(--gris-100);
+  color: var(--gris-900);
+  border: 1px solid var(--gris-200);
+}
+.assistant-bulle--indisponible {
+  background: var(--ambre-100);
+  border-color: var(--ambre-600);
+  color: var(--ambre-600);
+}
+.assistant-bulle--attente {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--gris-500);
+}
+.assistant-saisie {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  border-top: 1px solid var(--gris-200);
+  padding-top: 16px;
+}
+.assistant-saisie .champ { flex: 1; margin-bottom: 0; }
+.assistant-saisie textarea { resize: none; min-height: 44px; }
+.assistant-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+}
+.assistant-suggestion {
+  border: 1px solid var(--gris-300);
+  background: var(--blanc);
+  border-radius: var(--rayon-pill);
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  color: var(--bleu);
+  cursor: pointer;
+}
+.assistant-suggestion:hover { background: var(--bleu-fond); }

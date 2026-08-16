@@ -14,6 +14,7 @@ import Cotisations from './pages/Cotisations.jsx'
 import Paiements from './pages/Paiements.jsx'
 import Recus from './pages/Recus.jsx'
 import Notifications from './pages/Notifications.jsx'
+import Assistant from './pages/Assistant.jsx'
 import AccesRefuse from './pages/AccesRefuse.jsx'
 import NonTrouve from './pages/NonTrouve.jsx'
 
@@ -47,6 +48,7 @@ export default function App() {
           <Route path="/paiements" element={<Paiements />} />
           <Route path="/recus" element={<Recus />} />
           <Route path="/notifications" element={<Notifications />} />
+          <Route path="/assistant" element={<Assistant />} />
 
           <Route path="/acces-refuse" element={<AccesRefuse />} />
           <Route path="*" element={<NonTrouve />} />

@@ -14,6 +14,7 @@ const TRACES = {
   paiements: <><rect x="2.5" y="5" width="19" height="14" rx="2.5" /><path d="M2.5 10h19" /><path d="M6.5 15h3" /></>,
   recus: <><path d="M5 21V4.5A1.5 1.5 0 0 1 6.5 3h11A1.5 1.5 0 0 1 19 4.5V21l-2.3-1.6L14.4 21l-2.4-1.6L9.6 21l-2.3-1.6z" /><path d="M9 8h6" /><path d="M9 12h6" /></>,
   notifications: <><path d="M18 8.5a6 6 0 0 0-12 0c0 6-2.5 7.5-2.5 7.5h17S18 14.5 18 8.5" /><path d="M13.7 19.5a2 2 0 0 1-3.4 0" /></>,
+  assistant: <><path d="M4 5.5h16a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5H9l-4.5 4v-4H4A1.5 1.5 0 0 1 2.5 16V7A1.5 1.5 0 0 1 4 5.5z" /><path d="M7.5 10h9" /><path d="M7.5 13.2h5.5" /></>,
 
   // --- Actions ---
   plus: <><path d="M12 5v14" /><path d="M5 12h14" /></>,
