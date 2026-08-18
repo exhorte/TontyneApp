@@ -50,9 +50,31 @@ public class MembreService {
         this.notificationService = notificationService;
     }
 
+    /**
+     * Liste sans filtre : les membres des tontines auxquelles l'appelant
+     * appartient (lui compris), ou l'integralite pour l'administrateur de la
+     * plateforme. Voir {@link SecuriteTontine#peutListerMembres}.
+     */
     @Transactional(readOnly = true)
     public List<MembreResponse> lister() {
-        return membreRepository.findAll().stream().map(this::versReponse).toList();
+        return membresVisibles().stream().map(this::versReponse).toList();
+    }
+
+    private List<Membre> membresVisibles() {
+        if (securiteTontine.estAdministrateurPlateforme()) {
+            return membreRepository.findAll();
+        }
+        Long utilisateurId = securiteTontine.idCourant();
+        if (utilisateurId == null) {
+            return List.of();
+        }
+        List<Long> tontineIds = membreRepository.findByUtilisateurId(utilisateurId).stream()
+                .map(m -> m.getTontine().getId())
+                .distinct()
+                .toList();
+        return tontineIds.stream()
+                .flatMap(tontineId -> membreRepository.findByTontineId(tontineId).stream())
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -77,10 +99,8 @@ public class MembreService {
      * Construit la reponse d'un membre, score de fiabilite inclus si et
      * seulement si l'appelant courant est autorise a le consulter : le
      * gestionnaire de la tontine concernee, ou le membre pour son propre
-     * score (voir PROMPT_SCORE_FIABILITE.md). Dans le cas contraire, le score
-     * est simplement absent de la reponse plutot que de bloquer l'appel :
-     * ces routes de liste restent aujourd'hui accessibles a tout utilisateur
-     * authentifie (limite preexistante, documentee dans ETAT_DU_PROJET.md).
+     * score (voir PROMPT_SCORE_FIABILITE.md). Un co-membre de la meme tontine
+     * peut voir la fiche (nom, role, ordre de tour...) sans en voir le score.
      */
     private MembreResponse versReponse(Membre membre) {
         boolean autorise = securiteTontine.gereMembre(membre.getId())

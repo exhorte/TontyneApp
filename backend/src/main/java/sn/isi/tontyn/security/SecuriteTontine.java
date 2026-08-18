@@ -120,6 +120,45 @@ public class SecuriteTontine {
                 && membreRepository.existsByTontineIdAndUtilisateurId(tontineId, utilisateurId);
     }
 
+    /**
+     * Autorise la consultation d'un membre : administrateur de la plateforme,
+     * ou toute personne appartenant a la meme tontine que ce membre (les
+     * membres d'un meme groupe se voient entre eux, c'est la transparence de
+     * base d'une tontine ; les tiers exterieurs au groupe, non).
+     */
+    @Transactional(readOnly = true)
+    public boolean peutConsulterMembre(Long membreId) {
+        if (membreId == null) {
+            return false;
+        }
+        if (estAdministrateurPlateforme()) {
+            return true;
+        }
+        return membreRepository.findById(membreId)
+                .map(m -> appartientTontine(m.getTontine().getId()))
+                .orElse(false);
+    }
+
+    /**
+     * Autorise l'appel a {@code GET /api/membres} selon le filtre fourni :
+     * par tontine (il faut y appartenir), par utilisateur (il faut etre
+     * soi-meme), ou sans filtre (liste globale, dont le contenu est alors
+     * restreint au niveau du service a ses propres tontines).
+     */
+    @Transactional(readOnly = true)
+    public boolean peutListerMembres(Long tontineId, Long utilisateurId) {
+        if (estAdministrateurPlateforme()) {
+            return true;
+        }
+        if (tontineId != null) {
+            return appartientTontine(tontineId);
+        }
+        if (utilisateurId != null) {
+            return estLuiMeme(utilisateurId);
+        }
+        return true;
+    }
+
     /** Gestion via un cycle : on remonte a la tontine qui le porte. */
     @Transactional(readOnly = true)
     public boolean gereCycle(Long cycleId) {

@@ -32,6 +32,7 @@ public class MembreController {
     }
 
     @GetMapping
+    @PreAuthorize("@secu.peutListerMembres(#tontineId, #utilisateurId)")
     public List<MembreResponse> lister(@RequestParam(required = false) Long tontineId,
                                        @RequestParam(required = false) Long utilisateurId) {
         if (tontineId != null) {
@@ -44,11 +45,13 @@ public class MembreController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("@secu.peutConsulterMembre(#id)")
     public MembreResponse obtenir(@PathVariable Long id) {
         return membreService.obtenir(id);
     }
 
     @GetMapping("/{id}/cotisations")
+    @PreAuthorize("@secu.peutConsulterMembre(#id)")
     public List<CotisationResponse> listerCotisations(@PathVariable Long id) {
         return cotisationService.listerParMembre(id);
     }
