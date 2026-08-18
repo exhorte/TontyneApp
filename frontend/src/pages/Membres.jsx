@@ -14,7 +14,6 @@ import Badge from '../components/Badge.jsx'
 import Button from '../components/Button.jsx'
 import Field from '../components/Field.jsx'
 import Alert from '../components/Alert.jsx'
-import RechercheTelephone from '../components/RechercheTelephone.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Modal, { ConfirmDialog } from '../components/Modal.jsx'
 import { formaterDate, formaterMontant } from '../utils/format.js'
@@ -71,15 +70,12 @@ export default function Membres() {
   const enregistrer = async (evenement) => {
     evenement.preventDefault()
     setErreurFormulaire(null)
-    if (!recherche.utilisateur) {
-      setErreurFormulaire({ message: 'Vérifiez le numéro de téléphone avant de continuer.', champs: {} })
-      return
-    }
     setEnvoi(true)
     try {
+      const utilisateur = await recherche.rechercher()
       const membre = await membresApi.creer({
         tontineId: Number(formulaire.tontineId),
-        utilisateurId: recherche.utilisateur.id,
+        utilisateurId: utilisateur.id,
         roleGroupe: formulaire.roleGroupe,
         ordreTour: formulaire.ordreTour ? Number(formulaire.ordreTour) : null,
       })
@@ -87,7 +83,7 @@ export default function Membres() {
       setModaleAjout(false)
       recharger()
     } catch (e) {
-      setErreurFormulaire(normaliserErreur(e))
+      setErreurFormulaire(e?.message !== undefined && e?.champs !== undefined ? e : normaliserErreur(e))
     } finally {
       setEnvoi(false)
     }
@@ -292,7 +288,7 @@ export default function Membres() {
               variante="principal"
               onClick={enregistrer}
               chargement={envoi}
-              disabled={!formulaire.tontineId || !recherche.utilisateur}
+              disabled={!formulaire.tontineId || !recherche.telephone.trim()}
             >
               Ajouter
             </Button>
@@ -320,7 +316,16 @@ export default function Membres() {
             requis
           />
 
-          <RechercheTelephone recherche={recherche} />
+          <Field
+            label="Numéro de téléphone du membre"
+            nom="telephoneRecherche"
+            type="tel"
+            valeur={recherche.telephone}
+            onChange={(e) => recherche.setTelephone(e.target.value)}
+            placeholder="+221 77 000 00 00"
+            aide="Le numéro doit déjà être inscrit sur Tontyn : vérifié automatiquement à l'ajout."
+            requis
+          />
 
           <div className="grille-champs">
             <Field

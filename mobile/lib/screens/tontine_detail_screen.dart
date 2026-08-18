@@ -211,38 +211,35 @@ class _AjoutMembre extends StatefulWidget {
 
 class _AjoutMembreState extends State<_AjoutMembre> {
   final _telephoneCtrl = TextEditingController();
-  m.Utilisateur? _trouve;
   String _role = 'MEMBRE';
-  bool _recherche = false, _envoi = false;
-  String? _erreurRecherche, _erreur;
+  bool _envoi = false;
+  String? _erreur;
 
   @override
   void dispose() { _telephoneCtrl.dispose(); super.dispose(); }
 
-  Future<void> _rechercher() async {
-    final saisie = _telephoneCtrl.text.trim();
-    if (saisie.isEmpty) return;
-    setState(() { _recherche = true; _erreurRecherche = null; _trouve = null; });
-    try {
-      final u = await Ressources.rechercherUtilisateur(saisie);
-      setState(() {
-        _trouve = u;
-        _erreurRecherche = u == null
-            ? "Ce numéro n'est inscrit sur Tontyn avec aucun compte."
-            : null;
-        _recherche = false;
-      });
-    } on ErreurApi catch (e) {
-      if (mounted) setState(() { _erreurRecherche = e.message; _recherche = false; });
-    }
-  }
-
+  /// Verifie le numero puis ajoute le membre en une seule action : pas de
+  /// bouton de verification separe.
   Future<void> _ajouter() async {
-    if (_trouve == null) return;
+    final saisie = _telephoneCtrl.text.trim();
+    if (saisie.isEmpty) {
+      setState(() => _erreur = 'Saisissez le numéro de téléphone du membre à ajouter.');
+      return;
+    }
     setState(() { _envoi = true; _erreur = null; });
     try {
+      final trouve = await Ressources.rechercherUtilisateur(saisie);
+      if (trouve == null) {
+        if (mounted) {
+          setState(() {
+            _erreur = "Ce numéro n'est inscrit sur Tontyn avec aucun compte.";
+            _envoi = false;
+          });
+        }
+        return;
+      }
       await Ressources.ajouterMembre(widget.tontineId,
-          {'utilisateurId': _trouve!.id, 'roleGroupe': _role});
+          {'utilisateurId': trouve.id, 'roleGroupe': _role});
       if (mounted) Navigator.pop(context, true);
     } on ErreurApi catch (e) {
       if (mounted) setState(() { _erreur = e.message; _envoi = false; });
@@ -264,36 +261,14 @@ class _AjoutMembreState extends State<_AjoutMembre> {
         Text('Ajouter un membre', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: Jetons.e5),
         if (_erreur != null) ...[Bandeau(_erreur!, erreur: true), const SizedBox(height: Jetons.e4)],
-        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Expanded(
-            child: TextField(
-              controller: _telephoneCtrl,
-              keyboardType: TextInputType.phone,
-              onChanged: (_) { if (_trouve != null || _erreurRecherche != null) {
-                setState(() { _trouve = null; _erreurRecherche = null; });
-              } },
-              onSubmitted: (_) => _rechercher(),
-              decoration: const InputDecoration(
-                  labelText: 'Numéro de téléphone', hintText: '+221 77 000 00 00'),
-            ),
-          ),
-          const SizedBox(width: Jetons.e3),
-          FilledButton(
-            onPressed: _recherche ? null : _rechercher,
-            child: _recherche
-                ? const SizedBox(width: 18, height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Jetons.blanc))
-                : const Text('Vérifier'),
-          ),
-        ]),
+        TextField(
+          controller: _telephoneCtrl,
+          keyboardType: TextInputType.phone,
+          onChanged: (_) { if (_erreur != null) setState(() => _erreur = null); },
+          decoration: const InputDecoration(
+              labelText: 'Numéro de téléphone du membre', hintText: '+221 77 000 00 00'),
+        ),
         const SizedBox(height: Jetons.e3),
-        if (_erreurRecherche != null) ...[
-          Bandeau(_erreurRecherche!, erreur: true), const SizedBox(height: Jetons.e3),
-        ],
-        if (_trouve != null) ...[
-          Bandeau('${_trouve!.nomComplet} — ${_trouve!.telephone}'),
-          const SizedBox(height: Jetons.e3),
-        ],
         DropdownButtonFormField<String>(
           initialValue: _role,
           decoration: const InputDecoration(labelText: 'Rôle dans le groupe'),
@@ -305,7 +280,7 @@ class _AjoutMembreState extends State<_AjoutMembre> {
         ),
         const SizedBox(height: Jetons.e5),
         FilledButton(
-          onPressed: _envoi || _trouve == null ? null : _ajouter,
+          onPressed: _envoi ? null : _ajouter,
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
           child: _envoi
               ? const SizedBox(width: 18, height: 18,
