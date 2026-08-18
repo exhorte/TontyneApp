@@ -9,7 +9,7 @@ import Icone from '../components/Icone.jsx'
 
 /**
  * Connexion en deux etapes (double facteur) :
- *   1. e-mail + mot de passe  -> le backend envoie un code OTP a 6 chiffres
+ *   1. numero de telephone + code PIN -> le backend envoie un code OTP a 6 chiffres par SMS
  *   2. saisie du code         -> delivrance du jeton JWT
  */
 export default function Login() {
@@ -82,7 +82,7 @@ export default function Login() {
         <p className="auth-sous-titre">
           {etape === 'identifiants'
             ? 'Connectez-vous pour gérer vos tontines en toute sécurité.'
-            : 'Saisissez le code à six chiffres reçu par e-mail.'}
+            : 'Saisissez le code à six chiffres reçu par SMS.'}
         </p>
 
         {erreur && (
@@ -101,7 +101,7 @@ export default function Login() {
               onChange={(e) => setTelephone(e.target.value)}
               erreur={erreur?.champs?.telephone}
               autoComplete="username"
-              placeholder="prenom.nom@exemple.sn"
+              placeholder="77 123 45 67"
               requis
             />
             <Field

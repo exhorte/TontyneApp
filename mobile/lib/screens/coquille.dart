@@ -61,27 +61,33 @@ class _CoquilleState extends State<Coquille> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: Jetons.e3),
-            child: Row(children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(u?.telephone ?? '',
+            child: InkWell(
+              borderRadius: BorderRadius.circular(24),
+              onTap: () => setState(() => _index = 4),
+              child: Row(children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    // Prenom en priorite : le numero de telephone ne doit
+                    // pas etre la premiere chose lue dans la barre superieure.
+                    Text((u != null && u.prenom.isNotEmpty) ? u.prenom : (u?.telephone ?? ''),
+                        style: const TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.w500, color: Jetons.encre)),
+                    Text(libelleRole(u?.role),
+                        style: const TextStyle(fontSize: 11, color: Jetons.texteSecondaire)),
+                  ],
+                ),
+                const SizedBox(width: Jetons.e2),
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: Jetons.bleu,
+                  child: Text(initiales(u?.nomComplet),
                       style: const TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.w500, color: Jetons.encre)),
-                  Text(libelleRole(u?.role),
-                      style: const TextStyle(fontSize: 11, color: Jetons.texteSecondaire)),
-                ],
-              ),
-              const SizedBox(width: Jetons.e2),
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: Jetons.bleu,
-                child: Text(initiales(u?.nomComplet),
-                    style: const TextStyle(
-                        fontSize: 12, color: Jetons.blanc, fontWeight: FontWeight.w600)),
-              ),
-            ]),
+                          fontSize: 12, color: Jetons.blanc, fontWeight: FontWeight.w600)),
+                ),
+              ]),
+            ),
           ),
         ],
       ),

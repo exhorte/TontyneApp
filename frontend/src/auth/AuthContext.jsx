@@ -107,6 +107,32 @@ export function AuthProvider({ children }) {
     }
   }, [utilisateur?.telephone, utilisateur?.id, resoudreUtilisateurId])
 
+  /**
+   * Profil complet (nom, prenom, email...), au-dela de ce que porte le JWT.
+   * Charge via GET /auth/me des qu'une session est ouverte, et rechargeable
+   * a la demande (ex. apres confirmation d'une adresse electronique depuis
+   * la page Profil).
+   */
+  const [profil, setProfil] = useState(null)
+
+  const chargerProfil = useCallback(async () => {
+    if (!utilisateur) {
+      setProfil(null)
+      return null
+    }
+    try {
+      const p = await authApi.moi()
+      setProfil(p)
+      return p
+    } catch {
+      return null
+    }
+  }, [utilisateur])
+
+  useEffect(() => {
+    chargerProfil()
+  }, [chargerProfil])
+
   /** Etape 1 du 2FA : verifie le mot de passe et declenche l'envoi du code OTP. */
   const demanderCode = useCallback(
     (identifiants) => authApi.connexion(identifiants),
@@ -117,13 +143,13 @@ export function AuthProvider({ children }) {
   const validerCode = useCallback(async ({ telephone, code }) => {
     const reponse = await authApi.verifierOtp({ telephone, code })
     const token = reponse?.token
-    const profil = decoderToken(token)
-    if (!token || !profil) {
+    const profilDecode = decoderToken(token)
+    if (!token || !profilDecode) {
       throw new Error("Le jeton renvoye par le serveur est invalide ou deja expire.")
     }
     stockageToken.ecrire(token)
-    setUtilisateur(profil)
-    return profil
+    setUtilisateur(profilDecode)
+    return profilDecode
   }, [])
 
   const valeur = useMemo(() => {
@@ -131,6 +157,7 @@ export function AuthProvider({ children }) {
     return {
       utilisateur,
       utilisateurId,
+      profil,
       role,
       pret,
       estAuthentifie: Boolean(utilisateur),
@@ -146,8 +173,10 @@ export function AuthProvider({ children }) {
         setUtilisateurId(id)
         return id
       },
+      /** Recharge le profil complet (nom, prenom, email...) depuis GET /auth/me. */
+      rafraichirProfil: chargerProfil,
     }
-  }, [utilisateur, utilisateurId, pret, demanderCode, validerCode, deconnexion, resoudreUtilisateurId])
+  }, [utilisateur, utilisateurId, profil, pret, demanderCode, validerCode, deconnexion, resoudreUtilisateurId, chargerProfil])
 
   return <AuthContext.Provider value={valeur}>{children}</AuthContext.Provider>
 }

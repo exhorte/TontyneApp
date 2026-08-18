@@ -216,6 +216,27 @@ a:hover { text-decoration: underline; }
   text-transform: capitalize;
 }
 
+.barre-sup__lien-profil {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 4px 8px 4px 4px;
+  border-radius: 999px;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+.barre-sup__lien-profil:hover,
+.barre-sup__lien-profil:focus-visible {
+  background: var(--vert-100);
+  text-decoration: none;
+}
+.barre-sup__lien-profil:focus-visible {
+  outline: 2px solid var(--vert-600);
+  outline-offset: 2px;
+}
+
 /* Bouton d'ouverture du menu sur mobile */
 .bouton-menu {
   display: none;

@@ -82,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: Jetons.e1),
             Text(
               _etapeCode
-                  ? 'Saisissez le code à six chiffres reçu par e-mail.'
+                  ? 'Saisissez le code à six chiffres reçu par SMS.'
                   : 'Connectez-vous pour gérer vos tontines en toute sécurité.',
               style: t.bodyMedium!.copyWith(color: Jetons.texteSecondaire),
             ),

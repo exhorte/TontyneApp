@@ -25,7 +25,7 @@ const LIBELLES_ROLE = {
 
 /** Coquille applicative : barre superieure + menu lateral + contenu de la route. */
 export default function Layout() {
-  const { utilisateur, utilisateurId, role, deconnexion } = useAuth()
+  const { utilisateur, utilisateurId, profil, role, deconnexion } = useAuth()
   const navigate = useNavigate()
   const emplacement = useLocation()
   const [menuOuvert, setMenuOuvert] = useState(false)
@@ -61,6 +61,12 @@ export default function Layout() {
     navigate('/login', { replace: true })
   }
 
+  // Tant que le profil complet (nom, prenom) n'est pas encore charge depuis
+  // GET /auth/me, on affiche provisoirement le numero de telephone plutot
+  // qu'un vide : evite un flash disgracieux au premier rendu.
+  const nomAffiche = profil?.prenom || utilisateur?.telephone || ''
+  const initialesAvatar = initiales(profil?.prenom || utilisateur?.telephone)
+
   return (
     <div className="app-shell">
       <a className="lien-evitement" href="#contenu-principal">
@@ -86,13 +92,20 @@ export default function Layout() {
         <div className="barre-sup__espace" />
 
         <div className="barre-sup__utilisateur">
-          <div className="avatar" aria-hidden="true">{initiales(utilisateur?.telephone)}</div>
-          <div className="barre-sup__identite">
-            <span className="barre-sup__email" title={utilisateur?.telephone}>
-              {utilisateur?.telephone}
-            </span>
-            <span className="barre-sup__role">{LIBELLES_ROLE[role] || role}</span>
-          </div>
+          <Link
+            to="/profil"
+            className="barre-sup__lien-profil"
+            aria-label="Voir mon profil"
+            title="Voir mon profil"
+          >
+            <div className="avatar" aria-hidden="true">{initialesAvatar}</div>
+            <div className="barre-sup__identite">
+              <span className="barre-sup__email" title={utilisateur?.telephone}>
+                {nomAffiche}
+              </span>
+              <span className="barre-sup__role">{LIBELLES_ROLE[role] || role}</span>
+            </div>
+          </Link>
           <Button variante="secondaire" taille="petit" onClick={seDeconnecter}>
             Déconnexion
           </Button>

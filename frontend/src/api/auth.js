@@ -25,4 +25,7 @@ export const authApi = {
 
   /** Confirmation de l'adresse au moyen du code recu. */
   confirmerEmail: (code) => client.post('/auth/email/confirmer', { code }).then((r) => r.data),
+
+  /** Dissociation de l'adresse electronique du profil. */
+  retirerEmail: () => client.delete('/auth/email').then((r) => r.data),
 }
