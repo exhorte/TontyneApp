@@ -6,7 +6,7 @@ import { cyclesApi } from '../api/cycles.js'
 import RoleGate from '../auth/RoleGate.jsx'
 import { useAuth } from '../auth/AuthContext.jsx'
 import useRequete from '../hooks/useRequete.js'
-import useAnnuaire from '../hooks/useAnnuaire.js'
+import useRechercheTelephone from '../hooks/useRechercheTelephone.js'
 import { useToast } from '../components/Toast.jsx'
 import { normaliserErreur } from '../utils/errors.js'
 import PageHeader, { InfoItem } from '../components/PageHeader.jsx'
@@ -15,6 +15,7 @@ import Badge from '../components/Badge.jsx'
 import Button from '../components/Button.jsx'
 import Field from '../components/Field.jsx'
 import Alert from '../components/Alert.jsx'
+import RechercheTelephone from '../components/RechercheTelephone.jsx'
 import Loader from '../components/Loader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Modal, { ConfirmDialog } from '../components/Modal.jsx'
@@ -45,13 +46,19 @@ export default function TontineDetail() {
 
   // --- Ajout d'un membre -------------------------------------------------
   const [modaleMembre, setModaleMembre] = useState(false)
-  const { utilisateurs } = useAnnuaire(modaleMembre)
+  const recherche = useRechercheTelephone()
   const [formMembre, setFormMembre] = useState({
-    utilisateurId: '',
     roleGroupe: 'MEMBRE',
     ordreTour: '',
   })
   const [erreurMembre, setErreurMembre] = useState(null)
+
+  const ouvrirAjoutMembre = () => {
+    recherche.reinitialiser()
+    setFormMembre({ roleGroupe: 'MEMBRE', ordreTour: '' })
+    setErreurMembre(null)
+    setModaleMembre(true)
+  }
 
   // --- Generation des cycles ---------------------------------------------
   const [modaleCycles, setModaleCycles] = useState(false)
@@ -77,18 +84,22 @@ export default function TontineDetail() {
   const ajouterMembre = async (evenement) => {
     evenement.preventDefault()
     setErreurMembre(null)
+    if (!recherche.utilisateur) {
+      setErreurMembre({ message: 'Vérifiez le numéro de téléphone avant de continuer.', champs: {} })
+      return
+    }
     setEnvoi(true)
     try {
       const charge = {
-        utilisateurId: Number(formMembre.utilisateurId),
+        utilisateurId: recherche.utilisateur.id,
         roleGroupe: formMembre.roleGroupe,
         // L'ordre de tour est attribue automatiquement par le backend si absent.
         ordreTour: formMembre.ordreTour ? Number(formMembre.ordreTour) : null,
       }
       const membre = await tontinesApi.ajouterMembre(id, charge)
-      toast.succes(`${membre.nomComplet} a rejoint la tontine.`)
+      toast.succes(`${membre.nomComplet} a rejoint la tontine et a été notifié(e).`)
       setModaleMembre(false)
-      setFormMembre({ utilisateurId: '', roleGroupe: 'MEMBRE', ordreTour: '' })
+      setFormMembre({ roleGroupe: 'MEMBRE', ordreTour: '' })
       // L'utilisateur courant vient peut-etre d'etre rattache a sa 1re tontine.
       rafraichirUtilisateurId()
       recharger()
@@ -204,7 +215,7 @@ export default function TontineDetail() {
         sousTitre={tontine.description || 'Aucune description renseignée.'}
         actions={
           <RoleGate roles={ROLES_ACTION}>
-            <Button onClick={() => setModaleMembre(true)} disabled={tontine.statut === 'CLOTUREE'}>
+            <Button onClick={ouvrirAjoutMembre} disabled={tontine.statut === 'CLOTUREE'}>
               {<><Icone nom="plus" taille={18} /> Ajouter un membre</>}
             </Button>
             <Button
@@ -365,7 +376,7 @@ export default function TontineDetail() {
                 texte="Ajoutez des membres avant de générer les cycles de la tontine."
                 action={
                   peutGerer ? (
-                    <Button variante="principal" onClick={() => setModaleMembre(true)}>
+                    <Button variante="principal" onClick={ouvrirAjoutMembre}>
                       {<><Icone nom="plus" taille={18} /> Ajouter un membre</>}
                     </Button>
                   ) : null
@@ -467,7 +478,7 @@ export default function TontineDetail() {
               variante="principal"
               onClick={ajouterMembre}
               chargement={envoi}
-              disabled={!formMembre.utilisateurId}
+              disabled={!recherche.utilisateur}
             >
               Ajouter
             </Button>
@@ -479,20 +490,7 @@ export default function TontineDetail() {
             <Alert type="erreur" champs={erreurMembre.champs}>{erreurMembre.message}</Alert>
           )}
 
-          <Field
-            label="Utilisateur"
-            nom="utilisateurId"
-            type="select"
-            valeur={formMembre.utilisateurId}
-            onChange={(e) => setFormMembre((f) => ({ ...f, utilisateurId: e.target.value }))}
-            erreur={erreurMembre?.champs?.utilisateurId}
-            options={[
-              { valeur: '', libelle: '— Choisir un utilisateur —' },
-              ...utilisateurs.map((u) => ({ valeur: String(u.id), libelle: `${u.nomComplet} — ${u.telephone}` })),
-            ]}
-            aide="Sélectionnez le compte à ajouter au groupe."
-            requis
-          />
+          <RechercheTelephone recherche={recherche} />
 
           <div className="grille-champs">
             <Field

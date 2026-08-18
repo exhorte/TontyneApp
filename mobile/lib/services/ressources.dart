@@ -146,4 +146,17 @@ class Ressources {
   // --- Utilisateurs (annuaire) ---------------------------------------------
   static Future<List<Utilisateur>> utilisateurs() async =>
       _liste(await api.get('/utilisateurs')).map(Utilisateur.depuisJson).toList();
+
+  /// Recherche un compte par numero de telephone exact (remplace l'annuaire
+  /// complet pour designer la personne a ajouter a une tontine).
+  /// Renvoie `null` si aucun compte n'est inscrit avec ce numero.
+  static Future<Utilisateur?> rechercherUtilisateur(String telephone) async {
+    try {
+      final d = await api.get('/utilisateurs/recherche', params: {'telephone': telephone});
+      return Utilisateur.depuisJson(Map<String, dynamic>.from(d));
+    } on ErreurApi catch (e) {
+      if (e.statut == 404) return null;
+      rethrow;
+    }
+  }
 }

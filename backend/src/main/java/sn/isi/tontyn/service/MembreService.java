@@ -30,6 +30,7 @@ public class MembreService {
     private final DeplafonnementService deplafonnement;
     private final ScoreFiabiliteService scoreFiabiliteService;
     private final SecuriteTontine securiteTontine;
+    private final NotificationService notificationService;
 
     public MembreService(MembreRepository membreRepository,
                          UtilisateurRepository utilisateurRepository,
@@ -37,7 +38,8 @@ public class MembreService {
                          TontineService tontineService,
                          DeplafonnementService deplafonnement,
                          ScoreFiabiliteService scoreFiabiliteService,
-                         SecuriteTontine securiteTontine) {
+                         SecuriteTontine securiteTontine,
+                         NotificationService notificationService) {
         this.membreRepository = membreRepository;
         this.utilisateurRepository = utilisateurRepository;
         this.cotisationRepository = cotisationRepository;
@@ -45,6 +47,7 @@ public class MembreService {
         this.deplafonnement = deplafonnement;
         this.scoreFiabiliteService = scoreFiabiliteService;
         this.securiteTontine = securiteTontine;
+        this.notificationService = notificationService;
     }
 
     @Transactional(readOnly = true)
@@ -130,7 +133,12 @@ public class MembreService {
         membre.setUtilisateur(utilisateur);
         membre.setRoleGroupe(RoleGroupe.normaliser(req.roleGroupe()));
         membre.setOrdreTour(ordreTour);
-        return versReponse(membreRepository.save(membre));
+        Membre enregistre = membreRepository.save(membre);
+
+        notificationService.envoyer(utilisateur, "AJOUT_TONTINE",
+                "Vous avez ete ajoute(e) a la tontine \"" + tontine.getNom() + "\".", "EMAIL");
+
+        return versReponse(enregistre);
     }
 
     public MembreResponse modifier(Long id, AjoutMembreRequest req) {

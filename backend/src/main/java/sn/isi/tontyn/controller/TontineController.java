@@ -34,11 +34,13 @@ public class TontineController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("@secu.appartientTontine(#id)")
     public TontineResponse obtenir(@PathVariable Long id) {
         return tontineService.obtenir(id);
     }
 
     @GetMapping("/utilisateur/{utilisateurId}")
+    @PreAuthorize("@secu.estLuiMeme(#utilisateurId)")
     public List<TontineResponse> listerParUtilisateur(@PathVariable Long utilisateurId) {
         return tontineService.listerParUtilisateur(utilisateurId);
     }
@@ -72,6 +74,7 @@ public class TontineController {
     // --- Sous-ressources ---
 
     @GetMapping("/{id}/membres")
+    @PreAuthorize("@secu.appartientTontine(#id)")
     public List<MembreResponse> listerMembres(@PathVariable Long id) {
         return membreService.listerParTontine(id);
     }
@@ -86,6 +89,7 @@ public class TontineController {
     }
 
     @GetMapping("/{id}/cycles")
+    @PreAuthorize("@secu.appartientTontine(#id)")
     public List<CycleResponse> listerCycles(@PathVariable Long id) {
         return cycleService.listerParTontine(id);
     }

@@ -200,7 +200,8 @@ class _TontineDetailScreenState extends State<TontineDetailScreen>
   }
 }
 
-/// Ajout d'un membre : selection dans l'annuaire des comptes.
+/// Ajout d'un membre : recherche par numero de telephone, plutot qu'une
+/// selection dans l'annuaire complet des comptes de la plateforme.
 class _AjoutMembre extends StatefulWidget {
   final int tontineId;
   const _AjoutMembre({required this.tontineId});
@@ -209,30 +210,39 @@ class _AjoutMembre extends StatefulWidget {
 }
 
 class _AjoutMembreState extends State<_AjoutMembre> {
-  List<m.Utilisateur> _comptes = [];
-  int? _choisi;
+  final _telephoneCtrl = TextEditingController();
+  m.Utilisateur? _trouve;
   String _role = 'MEMBRE';
-  bool _chargement = true, _envoi = false;
-  String? _erreur;
+  bool _recherche = false, _envoi = false;
+  String? _erreurRecherche, _erreur;
 
   @override
-  void initState() { super.initState(); _charger(); }
+  void dispose() { _telephoneCtrl.dispose(); super.dispose(); }
 
-  Future<void> _charger() async {
+  Future<void> _rechercher() async {
+    final saisie = _telephoneCtrl.text.trim();
+    if (saisie.isEmpty) return;
+    setState(() { _recherche = true; _erreurRecherche = null; _trouve = null; });
     try {
-      final l = await Ressources.utilisateurs();
-      if (mounted) setState(() { _comptes = l; _chargement = false; });
+      final u = await Ressources.rechercherUtilisateur(saisie);
+      setState(() {
+        _trouve = u;
+        _erreurRecherche = u == null
+            ? "Ce numéro n'est inscrit sur Tontyn avec aucun compte."
+            : null;
+        _recherche = false;
+      });
     } on ErreurApi catch (e) {
-      if (mounted) setState(() { _erreur = e.message; _chargement = false; });
+      if (mounted) setState(() { _erreurRecherche = e.message; _recherche = false; });
     }
   }
 
   Future<void> _ajouter() async {
-    if (_choisi == null) return;
+    if (_trouve == null) return;
     setState(() { _envoi = true; _erreur = null; });
     try {
       await Ressources.ajouterMembre(widget.tontineId,
-          {'utilisateurId': _choisi, 'roleGroupe': _role});
+          {'utilisateurId': _trouve!.id, 'roleGroupe': _role});
       if (mounted) Navigator.pop(context, true);
     } on ErreurApi catch (e) {
       if (mounted) setState(() { _erreur = e.message; _envoi = false; });
@@ -254,39 +264,54 @@ class _AjoutMembreState extends State<_AjoutMembre> {
         Text('Ajouter un membre', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: Jetons.e5),
         if (_erreur != null) ...[Bandeau(_erreur!, erreur: true), const SizedBox(height: Jetons.e4)],
-        if (_chargement)
-          const Chargement()
-        else ...[
-          DropdownButtonFormField<int>(
-            initialValue: _choisi,
-            isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Utilisateur'),
-            items: _comptes.map((u) => DropdownMenuItem(
-                value: u.id,
-                child: Text('${u.nomComplet} — ${u.telephone}',
-                    overflow: TextOverflow.ellipsis))).toList(),
-            onChanged: (v) => setState(() => _choisi = v),
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(
+            child: TextField(
+              controller: _telephoneCtrl,
+              keyboardType: TextInputType.phone,
+              onChanged: (_) { if (_trouve != null || _erreurRecherche != null) {
+                setState(() { _trouve = null; _erreurRecherche = null; });
+              } },
+              onSubmitted: (_) => _rechercher(),
+              decoration: const InputDecoration(
+                  labelText: 'Numéro de téléphone', hintText: '+221 77 000 00 00'),
+            ),
           ),
-          const SizedBox(height: Jetons.e3),
-          DropdownButtonFormField<String>(
-            initialValue: _role,
-            decoration: const InputDecoration(labelText: 'Rôle dans le groupe'),
-            items: const [
-              DropdownMenuItem(value: 'MEMBRE', child: Text('Membre')),
-              DropdownMenuItem(value: 'GESTIONNAIRE', child: Text('Gestionnaire de la tontine')),
-            ],
-            onChanged: (v) => setState(() => _role = v ?? 'MEMBRE'),
-          ),
-          const SizedBox(height: Jetons.e5),
+          const SizedBox(width: Jetons.e3),
           FilledButton(
-            onPressed: _envoi || _choisi == null ? null : _ajouter,
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-            child: _envoi
+            onPressed: _recherche ? null : _rechercher,
+            child: _recherche
                 ? const SizedBox(width: 18, height: 18,
                     child: CircularProgressIndicator(strokeWidth: 2, color: Jetons.blanc))
-                : const Text('Ajouter'),
+                : const Text('Vérifier'),
           ),
+        ]),
+        const SizedBox(height: Jetons.e3),
+        if (_erreurRecherche != null) ...[
+          Bandeau(_erreurRecherche!, erreur: true), const SizedBox(height: Jetons.e3),
         ],
+        if (_trouve != null) ...[
+          Bandeau('${_trouve!.nomComplet} — ${_trouve!.telephone}'),
+          const SizedBox(height: Jetons.e3),
+        ],
+        DropdownButtonFormField<String>(
+          initialValue: _role,
+          decoration: const InputDecoration(labelText: 'Rôle dans le groupe'),
+          items: const [
+            DropdownMenuItem(value: 'MEMBRE', child: Text('Membre')),
+            DropdownMenuItem(value: 'GESTIONNAIRE', child: Text('Gestionnaire de la tontine')),
+          ],
+          onChanged: (v) => setState(() => _role = v ?? 'MEMBRE'),
+        ),
+        const SizedBox(height: Jetons.e5),
+        FilledButton(
+          onPressed: _envoi || _trouve == null ? null : _ajouter,
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+          child: _envoi
+              ? const SizedBox(width: 18, height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Jetons.blanc))
+              : const Text('Ajouter'),
+        ),
         const SizedBox(height: Jetons.e5),
       ]),
     );

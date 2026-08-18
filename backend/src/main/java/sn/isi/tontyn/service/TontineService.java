@@ -39,14 +39,33 @@ public class TontineService {
         this.deplafonnement = deplafonnement;
     }
 
+    /**
+     * Liste des tontines visibles par l'appelant courant : celles auxquelles il
+     * appartient (comme gestionnaire ou simple membre), ou l'integralite pour
+     * l'administrateur de la plateforme. Voir {@link SecuriteTontine}.
+     */
     @Transactional(readOnly = true)
     public List<TontineResponse> lister() {
-        return tontineRepository.findAll().stream().map(this::versReponse).toList();
+        return tontinesVisibles().stream().map(this::versReponse).toList();
     }
 
     @Transactional(readOnly = true)
     public List<TontineResponse> listerParStatut(String statut) {
-        return tontineRepository.findByStatut(statut).stream().map(this::versReponse).toList();
+        return tontinesVisibles().stream()
+                .filter(t -> statut.equals(t.getStatut()))
+                .map(this::versReponse).toList();
+    }
+
+    /** Tontines auxquelles l'appelant courant appartient, ou toutes pour l'administrateur. */
+    private List<Tontine> tontinesVisibles() {
+        if (securite.estAdministrateurPlateforme()) {
+            return tontineRepository.findAll();
+        }
+        Long utilisateurId = securite.idCourant();
+        if (utilisateurId == null) {
+            return List.of();
+        }
+        return tontineRepository.findByUtilisateurId(utilisateurId);
     }
 
     @Transactional(readOnly = true)

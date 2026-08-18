@@ -5,7 +5,7 @@ import { tontinesApi } from '../api/tontines.js'
 import RoleGate from '../auth/RoleGate.jsx'
 import { useAuth } from '../auth/AuthContext.jsx'
 import useRequete from '../hooks/useRequete.js'
-import useAnnuaire from '../hooks/useAnnuaire.js'
+import useRechercheTelephone from '../hooks/useRechercheTelephone.js'
 import { useToast } from '../components/Toast.jsx'
 import { normaliserErreur } from '../utils/errors.js'
 import PageHeader from '../components/PageHeader.jsx'
@@ -14,6 +14,7 @@ import Badge from '../components/Badge.jsx'
 import Button from '../components/Button.jsx'
 import Field from '../components/Field.jsx'
 import Alert from '../components/Alert.jsx'
+import RechercheTelephone from '../components/RechercheTelephone.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Modal, { ConfirmDialog } from '../components/Modal.jsx'
 import { formaterDate, formaterMontant } from '../utils/format.js'
@@ -47,10 +48,9 @@ export default function Membres() {
 
   // --- Ajout d'un membre --------------------------------------------------
   const [modaleAjout, setModaleAjout] = useState(false)
-  const { utilisateurs } = useAnnuaire(modaleAjout)
+  const recherche = useRechercheTelephone()
   const [formulaire, setFormulaire] = useState({
     tontineId: tontineId || '',
-    utilisateurId: '',
     roleGroupe: 'MEMBRE',
     ordreTour: '',
   })
@@ -60,10 +60,10 @@ export default function Membres() {
   const ouvrirAjout = () => {
     setFormulaire({
       tontineId: tontineId || '',
-      utilisateurId: '',
       roleGroupe: 'MEMBRE',
       ordreTour: '',
     })
+    recherche.reinitialiser()
     setErreurFormulaire(null)
     setModaleAjout(true)
   }
@@ -71,15 +71,19 @@ export default function Membres() {
   const enregistrer = async (evenement) => {
     evenement.preventDefault()
     setErreurFormulaire(null)
+    if (!recherche.utilisateur) {
+      setErreurFormulaire({ message: 'Vérifiez le numéro de téléphone avant de continuer.', champs: {} })
+      return
+    }
     setEnvoi(true)
     try {
       const membre = await membresApi.creer({
         tontineId: Number(formulaire.tontineId),
-        utilisateurId: Number(formulaire.utilisateurId),
+        utilisateurId: recherche.utilisateur.id,
         roleGroupe: formulaire.roleGroupe,
         ordreTour: formulaire.ordreTour ? Number(formulaire.ordreTour) : null,
       })
-      toast.succes(`${membre.nomComplet} a rejoint « ${membre.tontineNom} ».`)
+      toast.succes(`${membre.nomComplet} a rejoint « ${membre.tontineNom} » et a été notifié(e).`)
       setModaleAjout(false)
       recharger()
     } catch (e) {
@@ -288,7 +292,7 @@ export default function Membres() {
               variante="principal"
               onClick={enregistrer}
               chargement={envoi}
-              disabled={!formulaire.tontineId || !formulaire.utilisateurId}
+              disabled={!formulaire.tontineId || !recherche.utilisateur}
             >
               Ajouter
             </Button>
@@ -316,20 +320,7 @@ export default function Membres() {
             requis
           />
 
-          <Field
-            label="Utilisateur"
-            nom="utilisateurId"
-            type="select"
-            valeur={formulaire.utilisateurId}
-            onChange={(e) => setFormulaire((f) => ({ ...f, utilisateurId: e.target.value }))}
-            erreur={erreurFormulaire?.champs?.utilisateurId}
-            options={[
-              { valeur: '', libelle: '— Choisir un utilisateur —' },
-              ...utilisateurs.map((u) => ({ valeur: String(u.id), libelle: `${u.nomComplet} — ${u.telephone}` })),
-            ]}
-            aide="Sélectionnez le compte à ajouter au groupe."
-            requis
-          />
+          <RechercheTelephone recherche={recherche} />
 
           <div className="grille-champs">
             <Field
