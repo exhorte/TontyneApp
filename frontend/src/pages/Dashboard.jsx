@@ -26,7 +26,7 @@ import Icone from '../components/Icone.jsx'
  * sur une vue globale pour les profils de gestion.
  */
 export default function Dashboard() {
-  const { utilisateur, utilisateurId, role } = useAuth()
+  const { utilisateur, utilisateurId, profil, role } = useAuth()
   const estGestion = ROLES_ACTION.includes(role)
 
   const chargerSynthese = useCallback(async () => {
@@ -78,7 +78,7 @@ export default function Dashboard() {
   const totalDu = enAttente.reduce((somme, c) => somme + (c.montant || 0), 0)
   const nonLues = notifications.filter((n) => n.statut === 'ENVOYEE')
 
-  const prenom = utilisateur?.telephone ?? ''
+  const prenom = profil?.prenom || utilisateur?.telephone || ''
 
   return (
     <>
