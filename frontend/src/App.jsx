@@ -1,7 +1,8 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 import ProtectedRoute from './auth/ProtectedRoute.jsx'
 import Layout from './components/Layout.jsx'
 
+import Accueil from './pages/Accueil.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import Dashboard from './pages/Dashboard.jsx'
@@ -28,13 +29,13 @@ export default function App() {
   return (
     <Routes>
       {/* Publiques */}
+      <Route path="/" element={<Accueil />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
       {/* Protegees */}
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
-          <Route path="/" element={<Navigate to="/tableau-de-bord" replace />} />
           <Route path="/tableau-de-bord" element={<Dashboard />} />
 
           <Route path="/tontines" element={<Tontines />} />
