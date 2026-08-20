@@ -10,22 +10,41 @@ import sn.isi.tontyn.model.Utilisateur;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Construit le texte de contexte transmis a DeepSeek : la situation d'un
- * membre sur Tontyn, et uniquement la sienne.
+ * membre sur Tontyn, sans restriction pour lui-meme, et un resume tres
+ * limite des autres membres de ses tontines.
  *
- * <p><strong>Cloisonnement des donnees (regle absolue, voir aussi
- * {@code AssistantService}).</strong> Cette classe ne prend en parametre
- * qu'un {@link Utilisateur} deja resolu par
+ * <p><strong>Cloisonnement des donnees propres a l'utilisateur (regle
+ * absolue, voir aussi {@code AssistantService}).</strong> Cette classe ne
+ * prend en parametre qu'un {@link Utilisateur} deja resolu par
  * {@code SecuriteTontine.utilisateurCourant()} — jamais un identifiant fourni
  * par le client. Elle ne s'appuie que sur les services metier existants
  * ({@link MembreService}, {@link CotisationService}, {@link CycleService}),
  * chacun filtre par cet utilisateur : aucune requete n'est reecrite ici, et
- * rien n'est jamais recupere pour un autre compte. Le texte produit ne
- * contient ni telephone, ni e-mail, ni empreinte de piece d'identite — le
- * prenom suffit, et il est deja visible des autres membres de chaque tontine
- * concernee.</p>
+ * rien n'est jamais recupere pour un autre compte que celui passe en
+ * parametre ou les co-membres de ses propres tontines.</p>
+ *
+ * <p><strong>Donnees d'un tiers (co-membre d'une meme tontine) : liste
+ * blanche stricte, point de passage unique.</strong> Un membre voit deja les
+ * autres membres de ses tontines dans l'application ; l'assistant peut donc
+ * en mobiliser un resume, mais exclusivement au travers de
+ * {@link #versResumeTiers}, qui ne lit que quatre champs : nom, statut
+ * d'adhesion, ordre de passage, et un indicateur generique de retard sur le
+ * tour en cours. Aucune autre information n'atteint jamais le texte de
+ * contexte pour un tiers — ni telephone, ni code PIN, ni piece d'identite ou
+ * son contenu, ni niveau de verification detaille, ni historique de paiement
+ * complet — meme si {@code MembreResponse} porte certains de ces champs par
+ * ailleurs pour d'autres usages (l'annuaire de la tontine, par exemple) :
+ * {@link ResumeMembreTiers} n'en reprend que ces quatre-la, et c'est ce
+ * record, jamais {@code MembreResponse} directement, qui alimente le texte
+ * ci-dessous pour un tiers. Pour toute evolution de ce qui peut etre partage
+ * entre co-membres, modifier {@link #versResumeTiers} et rien d'autre : c'est
+ * le composant unique a citer pour expliquer comment cette regle est
+ * appliquee.</p>
  */
 @Component
 public class ContexteAssistant {
@@ -42,6 +61,17 @@ public class ContexteAssistant {
         this.cotisationService = cotisationService;
         this.cycleService = cycleService;
     }
+
+    /**
+     * Liste blanche des donnees d'un tiers admissibles dans le contexte de
+     * l'assistant. Voir la javadoc de la classe : ce record est le seul
+     * chemin par lequel une information sur un co-membre peut atteindre le
+     * modele de langage. N'y ajouter un champ qu'apres s'etre assure qu'il ne
+     * figure pas parmi les donnees proscrites (telephone, PIN, piece
+     * d'identite, niveau de verification detaille, historique de paiement).
+     */
+    private record ResumeMembreTiers(String nom, String statutAdhesion, int ordreTour,
+                                     boolean enRetardTourEnCours) {}
 
     @Transactional(readOnly = true)
     public String construirePour(Utilisateur utilisateur) {
@@ -103,7 +133,8 @@ public class ContexteAssistant {
         texte.append("Total actuellement du sur cette tontine : ")
                 .append(formaterMontant(totalDu)).append(" FCFA.\n");
 
-        CycleResponse tour = cycleService.listerParTontine(m.tontineId()).stream()
+        List<CycleResponse> cycles = cycleService.listerParTontine(m.tontineId());
+        CycleResponse tour = cycles.stream()
                 .filter(c -> m.id().equals(c.beneficiaireId()))
                 .findFirst().orElse(null);
         if (tour != null) {
@@ -113,7 +144,61 @@ public class ContexteAssistant {
         } else {
             texte.append("Les cycles de cette tontine n'ont pas encore ete programmes.\n");
         }
+
+        ajouterAutresMembres(texte, m, cycles);
+
         texte.append("--- fin tontine ---\n\n");
+    }
+
+    /**
+     * Resume des autres membres de cette meme tontine, filtre a la liste
+     * blanche de {@link #versResumeTiers}. Le retard porte uniquement sur le
+     * cycle EN_COURS de la tontine, s'il en existe un.
+     */
+    private void ajouterAutresMembres(StringBuilder texte, MembreResponse moi,
+                                      List<CycleResponse> cycles) {
+        List<MembreResponse> autres = membreService.listerParTontine(moi.tontineId()).stream()
+                .filter(autre -> !autre.id().equals(moi.id()))
+                .toList();
+        if (autres.isEmpty()) {
+            return;
+        }
+
+        Set<Long> membresEnRetard = membresEnRetardTourEnCours(cycles);
+
+        texte.append("Autres membres de cette tontine (visibles par tout membre du groupe) :\n");
+        for (MembreResponse autre : autres) {
+            ResumeMembreTiers resume = versResumeTiers(autre, membresEnRetard.contains(autre.id()));
+            texte.append("- ").append(resume.nom())
+                    .append(" : statut ").append(resume.statutAdhesion())
+                    .append(", ordre de passage ").append(resume.ordreTour())
+                    .append(", ").append(resume.enRetardTourEnCours()
+                            ? "en retard sur le tour en cours" : "a jour sur le tour en cours")
+                    .append(".\n");
+        }
+    }
+
+    /**
+     * Point de passage unique pour les donnees d'un tiers : voir la javadoc
+     * de la classe et de {@link ResumeMembreTiers}.
+     */
+    private ResumeMembreTiers versResumeTiers(MembreResponse autre, boolean enRetardTourEnCours) {
+        return new ResumeMembreTiers(autre.nomComplet(), autre.statut(), autre.ordreTour(),
+                enRetardTourEnCours);
+    }
+
+    /** Identifiants des membres dont la cotisation du cycle EN_COURS est EN_RETARD. */
+    private Set<Long> membresEnRetardTourEnCours(List<CycleResponse> cycles) {
+        CycleResponse enCours = cycles.stream()
+                .filter(c -> "EN_COURS".equals(c.statut()))
+                .findFirst().orElse(null);
+        if (enCours == null) {
+            return Set.of();
+        }
+        return cotisationService.listerParCycle(enCours.id()).stream()
+                .filter(c -> "EN_RETARD".equals(c.statut()))
+                .map(CotisationResponse::membreId)
+                .collect(Collectors.toSet());
     }
 
     /** Meme motif que DeplafonnementService.formater : espace comme separateur de milliers. */

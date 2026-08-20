@@ -115,6 +115,18 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <!-- ByteBuddy (utilise par Mockito, y compris pour les mocks de
+                 @MockBean) ne supporte officiellement que jusqu'au JDK 23 sur
+                 cette version de Spring Boot ; sans ce drapeau, tout test
+                 utilisant Mockito echoue au demarrage sur un JDK plus recent
+                 (meme motif que le lombok.version force plus haut). -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>-Dnet.bytebuddy.experimental=true</argLine>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
