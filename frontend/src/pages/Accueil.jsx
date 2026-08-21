@@ -1,6 +1,9 @@
 import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.jsx'
 import { IconePastille } from '../components/Icone.jsx'
+import heroTelephone from '../assets/accueil/hero-telephone.webp'
+import garantiePersonne from '../assets/accueil/garantie-personne.webp'
+import ctaPersonne from '../assets/accueil/cta-personne.webp'
 
 const FRICTIONS = [
   {
@@ -89,17 +92,29 @@ export default function Accueil() {
       <main id="contenu-principal">
         {/* Hero */}
         <section className="accueil-hero">
-          <h1 className="accueil-hero__titre">
-            Gérez vos tontines en toute confiance, du premier au dernier centime.
-          </h1>
-          <p className="accueil-hero__sous-titre">
-            Tontyn remplace le carnet papier par un suivi numérique clair : chaque cotisation
-            est enregistrée, chaque paiement est prouvé, et tous les membres voient la même
-            vérité.
-          </p>
-          <div className="accueil-hero__actions">
-            <Link to="/register" className="btn btn--principal btn--grand">S'inscrire</Link>
-            <Link to="/login" className="btn btn--secondaire btn--grand">Se connecter</Link>
+          <div className="accueil-hero__contenu">
+            <h1 className="accueil-hero__titre">
+              Gérez vos tontines en toute confiance, du premier au dernier centime.
+            </h1>
+            <p className="accueil-hero__sous-titre">
+              Tontyn remplace le carnet papier par un suivi numérique clair : chaque cotisation
+              est enregistrée, chaque paiement est prouvé, et tous les membres voient la même
+              vérité.
+            </p>
+            <div className="accueil-hero__actions">
+              <Link to="/register" className="btn btn--principal btn--grand">S'inscrire</Link>
+              <Link to="/login" className="btn btn--secondaire btn--grand">Se connecter</Link>
+            </div>
+          </div>
+          <div className="accueil-hero__visuel">
+            <div className="accueil-hero__blob" aria-hidden="true"></div>
+            <img
+              src={heroTelephone}
+              alt="La page d'accueil de Tontyn affichée sur un smartphone"
+              className="accueil-hero__image"
+              width="900"
+              height="661"
+            />
           </div>
         </section>
 
@@ -138,6 +153,26 @@ export default function Accueil() {
           </div>
         </section>
 
+        {/* Mise en avant : transparence */}
+        <section className="accueil-section accueil-mise-en-avant">
+          <div className="accueil-mise-en-avant__visuel">
+            <img
+              src={garantiePersonne}
+              alt=""
+              className="accueil-mise-en-avant__image"
+              width="700"
+              height="720"
+            />
+          </div>
+          <div className="accueil-mise-en-avant__texte">
+            <h2>Fini les comptes approximatifs</h2>
+            <p>
+              Chaque membre voit qui a cotisé, qui doit encore payer, et à qui revient le
+              prochain tour — la même information, pour tout le monde, à tout moment.
+            </p>
+          </div>
+        </section>
+
         {/* Comment ca marche */}
         <section className="accueil-section accueil-etapes">
           <h2 className="accueil-section__titre">Comment ça marche</h2>
@@ -160,9 +195,14 @@ export default function Accueil() {
 
         {/* CTA finale */}
         <section className="accueil-cta-finale">
-          <h2>Prêt à organiser votre tontine sans carnet ni malentendu ?</h2>
-          <p>Créez votre compte gratuitement et invitez les membres de votre tontine.</p>
-          <Link to="/register" className="btn btn--principal btn--grand">S'inscrire</Link>
+          <div className="accueil-cta-finale__texte">
+            <h2>Prêt à organiser votre tontine sans carnet ni malentendu ?</h2>
+            <p>Créez votre compte gratuitement et invitez les membres de votre tontine.</p>
+            <Link to="/register" className="btn btn--principal btn--grand">S'inscrire</Link>
+          </div>
+          <div className="accueil-cta-finale__visuel">
+            <img src={ctaPersonne} alt="" className="accueil-cta-finale__image" width="700" height="999" />
+          </div>
         </section>
       </main>
 
