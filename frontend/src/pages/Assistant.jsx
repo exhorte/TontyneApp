@@ -5,7 +5,6 @@ import { normaliserErreur } from '../utils/errors.js'
 import PageHeader from '../components/PageHeader.jsx'
 import Button from '../components/Button.jsx'
 import Field from '../components/Field.jsx'
-import Alert from '../components/Alert.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Icone from '../components/Icone.jsx'
 
@@ -72,12 +71,6 @@ export default function Assistant() {
         titre="Assistant"
         sousTitre="Posez une question simple sur votre tontine : ce que vous devez, votre tour, vos retards."
       />
-
-      <Alert type="info">
-        L'assistant ne connaît que votre propre situation, jamais celle des autres membres du
-        groupe. Il ne peut rien modifier : ni confirmer un paiement, ni suspendre personne — pour
-        ça, passez par les autres écrans.
-      </Alert>
 
       <div className="carte assistant-panneau">
         <div className="assistant-fil" ref={zoneDefilement}>
