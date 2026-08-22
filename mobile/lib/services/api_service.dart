@@ -17,8 +17,10 @@ class ApiService {
   ApiService._interne() {
     dio = Dio(BaseOptions(
       baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 12),
-      receiveTimeout: const Duration(seconds: 12),
+      // 45s : le service Render (offre gratuite) peut mettre 30-60s a se
+      // reveiller apres une periode d'inactivite lors du premier appel.
+      connectTimeout: const Duration(seconds: 45),
+      receiveTimeout: const Duration(seconds: 45),
       headers: {'Content-Type': 'application/json'},
     ));
     dio.interceptors.add(InterceptorsWrapper(
@@ -82,6 +84,12 @@ class ApiService {
       return ErreurApi(
           "Serveur injoignable. Vérifiez que l'API est démarrée "
           "et que l'adresse ${ApiService.baseUrl} est correcte.");
+    }
+    if (e.type == DioExceptionType.receiveTimeout ||
+        e.type == DioExceptionType.sendTimeout) {
+      return ErreurApi(
+          "Le serveur met du temps à répondre (il est peut-être en train de "
+          "se réveiller). Réessayez dans une minute.");
     }
     final d = e.response?.data;
     final code = e.response?.statusCode;
