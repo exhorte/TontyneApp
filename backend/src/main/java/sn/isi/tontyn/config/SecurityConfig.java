@@ -60,6 +60,10 @@ public class SecurityConfig {
                 auth.requestMatchers("/api/auth/me", "/api/auth/email/**", "/api/auth/email")
                         .authenticated();
                 auth.requestMatchers("/api/auth/**").permitAll();
+                // Protege par son propre jeton secret (X-Reset-Token) ou par le role
+                // administrateur, verifies manuellement dans le controleur : voir
+                // DevJeuDeDonneesController.
+                auth.requestMatchers("/api/dev/jeu-de-donnees/**").permitAll();
                 if (h2ConsoleEnabled) {
                     auth.requestMatchers("/h2-console/**").permitAll();
                 }
