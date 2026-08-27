@@ -1,6 +1,8 @@
 package sn.isi.tontyn.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import sn.isi.tontyn.model.MethodePaiement;
 import sn.isi.tontyn.model.Paiement;
 
@@ -18,4 +20,7 @@ public interface PaiementRepository extends JpaRepository<Paiement, Long> {
     List<Paiement> findByMethode(MethodePaiement methode);
 
     boolean existsByCotisationId(Long cotisationId);
+
+    @Query("select p from Paiement p where p.cotisation.cycle.tontine.id = :tontineId")
+    List<Paiement> findByTontineId(@Param("tontineId") Long tontineId);
 }

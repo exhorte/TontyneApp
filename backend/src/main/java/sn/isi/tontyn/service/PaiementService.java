@@ -12,6 +12,7 @@ import sn.isi.tontyn.model.Paiement;
 import sn.isi.tontyn.model.Recu;
 import sn.isi.tontyn.repository.PaiementRepository;
 import sn.isi.tontyn.repository.RecuRepository;
+import sn.isi.tontyn.security.SecuriteTontine;
 
 import java.util.List;
 import java.util.UUID;
@@ -25,27 +26,40 @@ public class PaiementService {
     private final CotisationService cotisationService;
     private final RecuService recuService;
     private final NotificationService notificationService;
+    private final SecuriteTontine securite;
 
     public PaiementService(PaiementRepository paiementRepository,
                            RecuRepository recuRepository,
                            CotisationService cotisationService,
                            RecuService recuService,
-                           NotificationService notificationService) {
+                           NotificationService notificationService,
+                           SecuriteTontine securite) {
         this.paiementRepository = paiementRepository;
         this.recuRepository = recuRepository;
         this.cotisationService = cotisationService;
         this.recuService = recuService;
         this.notificationService = notificationService;
+        this.securite = securite;
     }
 
+    /**
+     * Liste sans filtre : les paiements des tontines auxquelles l'appelant
+     * appartient, ou l'integralite pour l'administrateur de la plateforme.
+     */
     @Transactional(readOnly = true)
     public List<PaiementResponse> lister() {
-        return paiementRepository.findAll().stream().map(this::versReponse).toList();
+        return securite.idsTontinesVisibles().stream()
+                .flatMap(tontineId -> paiementRepository.findByTontineId(tontineId).stream())
+                .map(this::versReponse).toList();
     }
 
+    /** Filtre par statut, restreint lui aussi au perimetre visible de l'appelant. */
     @Transactional(readOnly = true)
     public List<PaiementResponse> listerParStatut(String statut) {
-        return paiementRepository.findByStatut(statut).stream().map(this::versReponse).toList();
+        List<Long> visibles = securite.idsTontinesVisibles();
+        return paiementRepository.findByStatut(statut).stream()
+                .filter(p -> visibles.contains(p.getCotisation().getCycle().getTontine().getId()))
+                .map(this::versReponse).toList();
     }
 
     @Transactional(readOnly = true)

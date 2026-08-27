@@ -32,17 +32,24 @@ public class PaiementController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("@secu.appartientTontineDuPaiement(#id)")
     public PaiementResponse obtenir(@PathVariable Long id) {
         return paiementService.obtenir(id);
     }
 
     @GetMapping("/{id}/recu")
+    @PreAuthorize("@secu.appartientTontineDuPaiement(#id)")
     public RecuResponse obtenirRecu(@PathVariable Long id) {
         return recuService.obtenirParPaiement(id);
     }
 
-    /** Endpoint metier : initier un paiement (Orange Money / Wave). */
+    /**
+     * Endpoint metier : initier un paiement (Orange Money / Wave). Reserve au
+     * gestionnaire de la tontine visee, ou au membre qui regle sa propre
+     * cotisation.
+     */
     @PostMapping
+    @PreAuthorize("@secu.peutInitierPaiement(#req.cotisationId())")
     @ResponseStatus(HttpStatus.CREATED)
     public PaiementResponse initier(@Valid @RequestBody PaiementRequest req) {
         return paiementService.initier(req);

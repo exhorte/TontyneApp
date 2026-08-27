@@ -13,6 +13,7 @@ import sn.isi.tontyn.model.Tontine;
 import sn.isi.tontyn.repository.CotisationRepository;
 import sn.isi.tontyn.repository.CycleRepository;
 import sn.isi.tontyn.repository.MembreRepository;
+import sn.isi.tontyn.security.SecuriteTontine;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -26,26 +27,43 @@ public class CycleService {
     private final MembreRepository membreRepository;
     private final CotisationRepository cotisationRepository;
     private final TontineService tontineService;
+    private final SecuriteTontine securite;
 
     public CycleService(CycleRepository cycleRepository,
                         MembreRepository membreRepository,
                         CotisationRepository cotisationRepository,
-                        TontineService tontineService) {
+                        TontineService tontineService,
+                        SecuriteTontine securite) {
         this.cycleRepository = cycleRepository;
         this.membreRepository = membreRepository;
         this.cotisationRepository = cotisationRepository;
         this.tontineService = tontineService;
+        this.securite = securite;
     }
 
+    /**
+     * Liste sans filtre : les cycles des tontines auxquelles l'appelant
+     * appartient, ou l'integralite pour l'administrateur de la plateforme.
+     */
     @Transactional(readOnly = true)
     public List<CycleResponse> lister() {
-        return cycleRepository.findAll().stream().map(this::versReponse).toList();
+        return securite.idsTontinesVisibles().stream()
+                .flatMap(tontineId -> cycleRepository.findByTontineIdOrderByNumeroAsc(tontineId).stream())
+                .map(this::versReponse).toList();
     }
 
     @Transactional(readOnly = true)
     public List<CycleResponse> listerParTontine(Long tontineId) {
         tontineService.chargerTontine(tontineId);
         return cycleRepository.findByTontineIdOrderByNumeroAsc(tontineId).stream()
+                .map(this::versReponse).toList();
+    }
+
+    /** Filtre par statut, utile au frontend pour resoudre le cycle actif d'une tontine. */
+    @Transactional(readOnly = true)
+    public List<CycleResponse> listerParTontineEtStatut(Long tontineId, String statut) {
+        tontineService.chargerTontine(tontineId);
+        return cycleRepository.findByTontineIdAndStatut(tontineId, statut).stream()
                 .map(this::versReponse).toList();
     }
 

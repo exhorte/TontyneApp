@@ -90,6 +90,20 @@ public class MembreService {
                 .map(this::versReponse).toList();
     }
 
+    /**
+     * Fiche d'appartenance d'un utilisateur a une tontine donnee, le cas
+     * echeant : au plus un resultat, puisqu'un utilisateur n'est membre d'une
+     * meme tontine qu'une seule fois. Permet au frontend de resoudre "ma
+     * fiche membre pour cette tontine" en un seul appel, sans lister tous les
+     * membres du groupe pour filtrer cote client.
+     */
+    @Transactional(readOnly = true)
+    public List<MembreResponse> listerParTontineEtUtilisateur(Long tontineId, Long utilisateurId) {
+        return membreRepository.findByTontineIdAndUtilisateurId(tontineId, utilisateurId)
+                .map(m -> List.of(versReponse(m)))
+                .orElseGet(List::of);
+    }
+
     @Transactional(readOnly = true)
     public MembreResponse obtenir(Long id) {
         return versReponse(chargerMembre(id));

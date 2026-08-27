@@ -2,8 +2,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { paiementsApi } from '../api/paiements.js'
 import { cotisationsApi } from '../api/cotisations.js'
+import { membresApi } from '../api/membres.js'
+import { tontinesApi } from '../api/tontines.js'
 import { recusApi } from '../api/recus.js'
-import RoleGate from '../auth/RoleGate.jsx'
+import { useAuth } from '../auth/AuthContext.jsx'
 import useRequete from '../hooks/useRequete.js'
 import { useToast } from '../components/Toast.jsx'
 import { normaliserErreur } from '../utils/errors.js'
@@ -17,7 +19,7 @@ import EmptyState from '../components/EmptyState.jsx'
 import Modal, { ConfirmDialog } from '../components/Modal.jsx'
 import RecuVue from '../components/RecuVue.jsx'
 import { formaterDateHeure, formaterMontant } from '../utils/format.js'
-import { LIBELLES_METHODE, METHODES_PAIEMENT, ROLES, ROLES_ACTION } from '../utils/constants.js'
+import { LIBELLES_METHODE, METHODES_PAIEMENT } from '../utils/constants.js'
 import Icone from '../components/Icone.jsx'
 
 const STATUTS_PAIEMENT = [
@@ -36,6 +38,7 @@ export default function Paiements() {
   const cotisationIdUrl = parametres.get('cotisationId')
   const statut = parametres.get('statut') || ''
   const toast = useToast()
+  const { utilisateurId } = useAuth()
 
   const charger = useCallback(
     () => paiementsApi.lister(statut ? { statut } : {}),
@@ -50,6 +53,22 @@ export default function Paiements() {
     [],
     { valeurInitiale: [] },
   )
+
+  // Tontines gerees par l'utilisateur courant (voir TontineResponse.administrateur) :
+  // seules elles autorisent confirmer/annuler un paiement, emettre un reçu de
+  // rattrapage, ou supprimer un paiement.
+  const { donnees: tontines } = useRequete(() => tontinesApi.lister(), [], { valeurInitiale: [] })
+  const gereLaTontine = (tontineId) => tontines?.some((t) => t.id === tontineId && t.administrateur) ?? false
+
+  // Mes propres adhesions, toutes tontines confondues : sert a restreindre
+  // « Cotisation à régler » aux cotisations de l'utilisateur courant, plutot
+  // que de lui laisser choisir celle d'un tiers.
+  const { donnees: mesMembres } = useRequete(
+    () => (utilisateurId ? membresApi.lister({ utilisateurId }) : []),
+    [utilisateurId],
+    { valeurInitiale: [], actif: Boolean(utilisateurId) },
+  )
+  const mesMembreIds = new Set((mesMembres ?? []).map((m) => m.id))
 
   // --- Initiation d'un paiement -------------------------------------------
   const [modale, setModale] = useState(false)
@@ -167,7 +186,13 @@ export default function Paiements() {
     }
   }
 
-  const cotisationsPayables = (cotisations ?? []).filter((c) => c.statut !== 'PAYEE')
+  // Restreint aux cotisations que l'utilisateur peut regler : les siennes, ou
+  // celles des tontines qu'il gere (voir SecuriteTontine.peutInitierPaiement,
+  // applique cote serveur) — jamais celle d'un tiers dans une tontine qu'il
+  // ne gere pas.
+  const cotisationsPayables = (cotisations ?? []).filter(
+    (c) => c.statut !== 'PAYEE' && (mesMembreIds.has(c.membreId) || gereLaTontine(c.tontineId)),
+  )
   const cotisationChoisie = (cotisations ?? []).find(
     (c) => String(c.id) === String(formulaire.cotisationId),
   )
@@ -282,26 +307,25 @@ export default function Paiements() {
               rendu: (p) => (
                 <div className="groupe-actions">
                   {p.statut === 'INITIE' && (
-                    <RoleGate
-                      roles={ROLES_ACTION}
-                      remplacement={
-                        <span className="texte-discret">En attente de confirmation</span>
-                      }
-                    >
-                      <Button
-                        taille="petit"
-                        variante="principal"
-                        onClick={() => setConfirmation({ type: 'confirmer', paiement: p })}
-                      >
-                        Confirmer
-                      </Button>
-                      <Button
-                        taille="petit"
-                        onClick={() => setConfirmation({ type: 'annuler', paiement: p })}
-                      >
-                        Annuler
-                      </Button>
-                    </RoleGate>
+                    gereLaTontine(p.tontineId) ? (
+                      <>
+                        <Button
+                          taille="petit"
+                          variante="principal"
+                          onClick={() => setConfirmation({ type: 'confirmer', paiement: p })}
+                        >
+                          Confirmer
+                        </Button>
+                        <Button
+                          taille="petit"
+                          onClick={() => setConfirmation({ type: 'annuler', paiement: p })}
+                        >
+                          Annuler
+                        </Button>
+                      </>
+                    ) : (
+                      <span className="texte-discret">En attente de confirmation</span>
+                    )
                   )}
 
                   {p.statut === 'CONFIRME' && (
@@ -309,16 +333,14 @@ export default function Paiements() {
                       <Button taille="petit" onClick={() => ouvrirRecu(p.id)}>
                         {<><Icone nom="recus" taille={18} /> Voir le reçu</>}
                       </Button>
-                    ) : (
-                      <RoleGate roles={ROLES_ACTION}>
-                        <Button taille="petit" onClick={() => genererRecu(p)}>
-                          Émettre le reçu
-                        </Button>
-                      </RoleGate>
-                    )
+                    ) : gereLaTontine(p.tontineId) ? (
+                      <Button taille="petit" onClick={() => genererRecu(p)}>
+                        Émettre le reçu
+                      </Button>
+                    ) : null
                   )}
 
-                  <RoleGate roles={[ROLES.ADMINISTRATEUR]}>
+                  {gereLaTontine(p.tontineId) && (
                     <Button
                       taille="petit"
                       variante="danger"
@@ -326,7 +348,7 @@ export default function Paiements() {
                     >
                       Supprimer
                     </Button>
-                  </RoleGate>
+                  )}
                 </div>
               ),
             },

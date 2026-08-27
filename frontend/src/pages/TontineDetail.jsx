@@ -3,7 +3,6 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { tontinesApi } from '../api/tontines.js'
 import { membresApi } from '../api/membres.js'
 import { cyclesApi } from '../api/cycles.js'
-import RoleGate from '../auth/RoleGate.jsx'
 import { useAuth } from '../auth/AuthContext.jsx'
 import useRequete from '../hooks/useRequete.js'
 import useRechercheTelephone from '../hooks/useRechercheTelephone.js'
@@ -19,7 +18,7 @@ import Loader from '../components/Loader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Modal, { ConfirmDialog } from '../components/Modal.jsx'
 import { dateDuJourIso, formaterDate, formaterMontant } from '../utils/format.js'
-import { PERIODICITES, ROLES_ACTION, ROLES_GROUPE } from '../utils/constants.js'
+import { PERIODICITES, ROLES_GROUPE } from '../utils/constants.js'
 import Icone from '../components/Icone.jsx'
 
 /** Fiche d'une tontine : informations, membres et cycles. */
@@ -27,8 +26,7 @@ export default function TontineDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const toast = useToast()
-  const { aRole, rafraichirUtilisateurId } = useAuth()
-  const peutGerer = aRole(ROLES_ACTION)
+  const { rafraichirUtilisateurId } = useAuth()
 
   const [onglet, setOnglet] = useState('membres')
 
@@ -79,6 +77,9 @@ export default function TontineDetail() {
   }
 
   const { tontine, membres, cycles } = donnees
+  // Droits de gestion propres a CETTE tontine (voir TontineResponse.administrateur) :
+  // gestionnaire du groupe, ou administrateur de la plateforme.
+  const peutGerer = tontine.administrateur
 
   const ajouterMembre = async (evenement) => {
     evenement.preventDefault()
@@ -210,30 +211,32 @@ export default function TontineDetail() {
         titre={tontine.nom}
         sousTitre={tontine.description || 'Aucune description renseignée.'}
         actions={
-          <RoleGate roles={ROLES_ACTION}>
-            <Button onClick={ouvrirAjoutMembre} disabled={tontine.statut === 'CLOTUREE'}>
-              {<><Icone nom="plus" taille={18} /> Ajouter un membre</>}
-            </Button>
-            <Button
-              variante="principal"
-              onClick={() => setModaleCycles(true)}
-              disabled={cycles.length > 0 || membresActifs.length === 0}
-              title={
-                cycles.length > 0
-                  ? 'Les cycles ont déjà été générés.'
-                  : membresActifs.length === 0
-                    ? 'Ajoutez au moins un membre actif.'
-                    : undefined
-              }
-            >
-              {<><Icone nom="calendrierPlus" taille={18} /> Générer les cycles</>}
-            </Button>
-            {tontine.statut !== 'CLOTUREE' && (
-              <Button onClick={() => setConfirmation({ type: 'cloturerTontine' })}>
-                Clôturer
+          peutGerer && (
+            <>
+              <Button onClick={ouvrirAjoutMembre} disabled={tontine.statut === 'CLOTUREE'}>
+                {<><Icone nom="plus" taille={18} /> Ajouter un membre</>}
               </Button>
-            )}
-          </RoleGate>
+              <Button
+                variante="principal"
+                onClick={() => setModaleCycles(true)}
+                disabled={cycles.length > 0 || membresActifs.length === 0}
+                title={
+                  cycles.length > 0
+                    ? 'Les cycles ont déjà été générés.'
+                    : membresActifs.length === 0
+                      ? 'Ajoutez au moins un membre actif.'
+                      : undefined
+                }
+              >
+                {<><Icone nom="calendrierPlus" taille={18} /> Générer les cycles</>}
+              </Button>
+              {tontine.statut !== 'CLOTUREE' && (
+                <Button onClick={() => setConfirmation({ type: 'cloturerTontine' })}>
+                  Clôturer
+                </Button>
+              )}
+            </>
+          )
         }
       />
 
@@ -337,30 +340,32 @@ export default function TontineDetail() {
                     >
                       Cotisations
                     </Link>
-                    <RoleGate roles={ROLES_ACTION}>
-                      {m.statut === 'ACTIF' ? (
+                    {peutGerer && (
+                      <>
+                        {m.statut === 'ACTIF' ? (
+                          <Button
+                            taille="petit"
+                            onClick={() => setConfirmation({ type: 'suspendre', cible: m })}
+                          >
+                            Suspendre
+                          </Button>
+                        ) : (
+                          <Button
+                            taille="petit"
+                            onClick={() => setConfirmation({ type: 'reactiver', cible: m })}
+                          >
+                            Réactiver
+                          </Button>
+                        )}
                         <Button
                           taille="petit"
-                          onClick={() => setConfirmation({ type: 'suspendre', cible: m })}
+                          variante="danger"
+                          onClick={() => setConfirmation({ type: 'retirerMembre', cible: m })}
                         >
-                          Suspendre
+                          Retirer
                         </Button>
-                      ) : (
-                        <Button
-                          taille="petit"
-                          onClick={() => setConfirmation({ type: 'reactiver', cible: m })}
-                        >
-                          Réactiver
-                        </Button>
-                      )}
-                      <Button
-                        taille="petit"
-                        variante="danger"
-                        onClick={() => setConfirmation({ type: 'retirerMembre', cible: m })}
-                      >
-                        Retirer
-                      </Button>
-                    </RoleGate>
+                      </>
+                    )}
                   </div>
                 ),
               },
@@ -422,23 +427,25 @@ export default function TontineDetail() {
                     <Link className="btn btn--secondaire btn--petit" to={`/cycles/${c.id}`}>
                       Détail
                     </Link>
-                    <RoleGate roles={ROLES_ACTION}>
-                      {c.statut !== 'CLOTURE' && (
+                    {peutGerer && (
+                      <>
+                        {c.statut !== 'CLOTURE' && (
+                          <Button
+                            taille="petit"
+                            onClick={() => setConfirmation({ type: 'cloturerCycle', cible: c })}
+                          >
+                            Clôturer
+                          </Button>
+                        )}
                         <Button
                           taille="petit"
-                          onClick={() => setConfirmation({ type: 'cloturerCycle', cible: c })}
+                          variante="danger"
+                          onClick={() => setConfirmation({ type: 'supprimerCycle', cible: c })}
                         >
-                          Clôturer
+                          Supprimer
                         </Button>
-                      )}
-                      <Button
-                        taille="petit"
-                        variante="danger"
-                        onClick={() => setConfirmation({ type: 'supprimerCycle', cible: c })}
-                      >
-                        Supprimer
-                      </Button>
-                    </RoleGate>
+                      </>
+                    )}
                   </div>
                 ),
               },

@@ -27,6 +27,10 @@ public class CotisationController {
     }
 
     @GetMapping
+    @PreAuthorize("(#cycleId != null and @secu.appartientTontineDuCycle(#cycleId)) or "
+            + "(#membreId != null and @secu.peutConsulterMembre(#membreId)) or "
+            + "(#tontineId != null and @secu.appartientTontine(#tontineId)) or "
+            + "(#cycleId == null and #membreId == null and #tontineId == null)")
     public List<CotisationResponse> lister(@RequestParam(required = false) Long cycleId,
                                            @RequestParam(required = false) Long membreId,
                                            @RequestParam(required = false) Long tontineId,
@@ -46,17 +50,24 @@ public class CotisationController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("@secu.appartientTontineDuCotisation(#id)")
     public CotisationResponse obtenir(@PathVariable Long id) {
         return cotisationService.obtenir(id);
     }
 
     @GetMapping("/{id}/paiement")
+    @PreAuthorize("@secu.appartientTontineDuCotisation(#id)")
     public PaiementResponse obtenirPaiement(@PathVariable Long id) {
         return paiementService.obtenirParCotisation(id);
     }
 
-    /** Endpoint metier : enregistrer une cotisation. */
+    /**
+     * Endpoint metier : enregistrer une cotisation. Reserve au gestionnaire de
+     * la tontine visee, ou au membre qui cotise pour son propre compte : ni
+     * l'un ni l'autre ne peut enregistrer une cotisation au nom d'un tiers.
+     */
     @PostMapping
+    @PreAuthorize("@secu.peutCotiser(#req.membreId(), #req.cycleId())")
     @ResponseStatus(HttpStatus.CREATED)
     public CotisationResponse enregistrer(@Valid @RequestBody CotisationRequest req) {
         return cotisationService.enregistrer(req);

@@ -7,14 +7,17 @@ import org.springframework.transaction.annotation.Transactional;
 import sn.isi.tontyn.model.Membre;
 import sn.isi.tontyn.model.Role;
 import sn.isi.tontyn.model.RoleGroupe;
+import sn.isi.tontyn.model.Tontine;
 import sn.isi.tontyn.model.Utilisateur;
 import sn.isi.tontyn.repository.CotisationRepository;
 import sn.isi.tontyn.repository.CycleRepository;
 import sn.isi.tontyn.repository.MembreRepository;
 import sn.isi.tontyn.repository.PaiementRepository;
 import sn.isi.tontyn.repository.RecuRepository;
+import sn.isi.tontyn.repository.TontineRepository;
 import sn.isi.tontyn.repository.UtilisateurRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -41,19 +44,22 @@ public class SecuriteTontine {
     private final CotisationRepository cotisationRepository;
     private final PaiementRepository paiementRepository;
     private final RecuRepository recuRepository;
+    private final TontineRepository tontineRepository;
 
     public SecuriteTontine(UtilisateurRepository utilisateurRepository,
                            MembreRepository membreRepository,
                            CycleRepository cycleRepository,
                            CotisationRepository cotisationRepository,
                            PaiementRepository paiementRepository,
-                           RecuRepository recuRepository) {
+                           RecuRepository recuRepository,
+                           TontineRepository tontineRepository) {
         this.utilisateurRepository = utilisateurRepository;
         this.membreRepository = membreRepository;
         this.cycleRepository = cycleRepository;
         this.cotisationRepository = cotisationRepository;
         this.paiementRepository = paiementRepository;
         this.recuRepository = recuRepository;
+        this.tontineRepository = tontineRepository;
     }
 
     // ------------------------------------------------------------------
@@ -241,5 +247,99 @@ public class SecuriteTontine {
         }
         Optional<Membre> membre = membreRepository.findById(membreId);
         return membre.map(m -> utilisateurId.equals(m.getUtilisateur().getId())).orElse(false);
+    }
+
+    // ------------------------------------------------------------------
+    //  Appartenance transverse (lecture partagee entre membres d'un meme
+    //  groupe, dans l'esprit de peutConsulterMembre : la transparence de
+    //  base d'une tontine ne vaut pas seulement pour les fiches membres.)
+    // ------------------------------------------------------------------
+
+    /** Appartenance a la tontine qui porte ce cycle. */
+    @Transactional(readOnly = true)
+    public boolean appartientTontineDuCycle(Long cycleId) {
+        if (cycleId == null) {
+            return false;
+        }
+        return cycleRepository.findById(cycleId)
+                .map(c -> appartientTontine(c.getTontine().getId()))
+                .orElse(false);
+    }
+
+    /** Appartenance a la tontine dont releve cette cotisation. */
+    @Transactional(readOnly = true)
+    public boolean appartientTontineDuCotisation(Long cotisationId) {
+        if (cotisationId == null) {
+            return false;
+        }
+        return cotisationRepository.findById(cotisationId)
+                .map(c -> appartientTontine(c.getCycle().getTontine().getId()))
+                .orElse(false);
+    }
+
+    /** Appartenance a la tontine dont releve ce paiement. */
+    @Transactional(readOnly = true)
+    public boolean appartientTontineDuPaiement(Long paiementId) {
+        if (paiementId == null) {
+            return false;
+        }
+        return paiementRepository.findById(paiementId)
+                .map(p -> appartientTontine(p.getCotisation().getCycle().getTontine().getId()))
+                .orElse(false);
+    }
+
+    /**
+     * Le membre rattache a cette cotisation correspond-il a l'utilisateur courant ?
+     */
+    @Transactional(readOnly = true)
+    public boolean estSonPropreCotisation(Long cotisationId) {
+        if (cotisationId == null) {
+            return false;
+        }
+        return cotisationRepository.findById(cotisationId)
+                .map(c -> estSonPropreMembre(c.getMembre().getId()))
+                .orElse(false);
+    }
+
+    /**
+     * Autorise l'enregistrement d'une cotisation : le gestionnaire de la
+     * tontine portant le cycle vise, ou le membre qui cotise pour son propre
+     * compte. Empeche un utilisateur quelconque d'enregistrer une cotisation
+     * au nom d'un membre qu'il ne gere pas et qui n'est pas lui-meme.
+     */
+    @Transactional(readOnly = true)
+    public boolean peutCotiser(Long membreId, Long cycleId) {
+        return gereCycle(cycleId) || estSonPropreMembre(membreId);
+    }
+
+    /**
+     * Autorise l'initiation d'un paiement : le gestionnaire de la tontine
+     * concernee, ou le membre qui regle sa propre cotisation.
+     */
+    @Transactional(readOnly = true)
+    public boolean peutInitierPaiement(Long cotisationId) {
+        return gereCotisation(cotisationId) || estSonPropreCotisation(cotisationId);
+    }
+
+    /**
+     * Identifiants des tontines visibles par l'appelant courant : les siennes
+     * (comme gestionnaire ou simple membre), ou l'integralite pour
+     * l'administrateur de la plateforme. Sert a restreindre, au niveau du
+     * service, les listes sans filtre (cotisations, paiements, cycles) au
+     * meme perimetre que {@code TontineService.lister()}.
+     */
+    @Transactional(readOnly = true)
+    public List<Long> idsTontinesVisibles() {
+        if (estAdministrateurPlateforme()) {
+            return tontineRepository.findAll().stream().map(Tontine::getId).toList();
+        }
+        Long utilisateurId = idCourant();
+        if (utilisateurId == null) {
+            return List.of();
+        }
+        return membreRepository.findByUtilisateurId(utilisateurId).stream()
+                .map(m -> m.getTontine().getId())
+                .distinct()
+                .toList();
     }
 }

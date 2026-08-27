@@ -11,6 +11,7 @@ import sn.isi.tontyn.model.Cycle;
 import sn.isi.tontyn.model.Membre;
 import sn.isi.tontyn.repository.CotisationRepository;
 import sn.isi.tontyn.repository.PaiementRepository;
+import sn.isi.tontyn.security.SecuriteTontine;
 
 import java.util.List;
 
@@ -22,20 +23,29 @@ public class CotisationService {
     private final PaiementRepository paiementRepository;
     private final CycleService cycleService;
     private final MembreService membreService;
+    private final SecuriteTontine securite;
 
     public CotisationService(CotisationRepository cotisationRepository,
                              PaiementRepository paiementRepository,
                              CycleService cycleService,
-                             MembreService membreService) {
+                             MembreService membreService,
+                             SecuriteTontine securite) {
         this.cotisationRepository = cotisationRepository;
         this.paiementRepository = paiementRepository;
         this.cycleService = cycleService;
         this.membreService = membreService;
+        this.securite = securite;
     }
 
+    /**
+     * Liste sans filtre : les cotisations des tontines auxquelles l'appelant
+     * appartient, ou l'integralite pour l'administrateur de la plateforme.
+     */
     @Transactional(readOnly = true)
     public List<CotisationResponse> lister() {
-        return cotisationRepository.findAll().stream().map(CotisationResponse::from).toList();
+        return securite.idsTontinesVisibles().stream()
+                .flatMap(tontineId -> cotisationRepository.findByTontineId(tontineId).stream())
+                .map(CotisationResponse::from).toList();
     }
 
     @Transactional(readOnly = true)

@@ -35,6 +35,12 @@ public class MembreController {
     @PreAuthorize("@secu.peutListerMembres(#tontineId, #utilisateurId)")
     public List<MembreResponse> lister(@RequestParam(required = false) Long tontineId,
                                        @RequestParam(required = false) Long utilisateurId) {
+        // GET /api/membres?tontineId=..&utilisateurId=.. : sert au frontend a
+        // resoudre automatiquement "ma fiche membre pour cette tontine", sans
+        // que l'utilisateur ait a se choisir lui-meme dans une liste.
+        if (tontineId != null && utilisateurId != null) {
+            return membreService.listerParTontineEtUtilisateur(tontineId, utilisateurId);
+        }
         if (tontineId != null) {
             return membreService.listerParTontine(tontineId);
         }

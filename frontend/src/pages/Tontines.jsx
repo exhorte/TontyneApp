@@ -215,19 +215,21 @@ export default function Tontines() {
                   <Link className="btn btn--secondaire btn--petit" to={`/tontines/${t.id}`}>
                     Détail
                   </Link>
-                  <RoleGate roles={ROLES_ACTION}>
-                    <Button taille="petit" onClick={() => ouvrirEdition(t)}>
-                      Modifier
-                    </Button>
-                    {t.statut !== 'CLOTUREE' && (
-                      <Button
-                        taille="petit"
-                        onClick={() => setConfirmation({ type: 'cloture', tontine: t })}
-                      >
-                        Clôturer
+                  {t.administrateur && (
+                    <>
+                      <Button taille="petit" onClick={() => ouvrirEdition(t)}>
+                        Modifier
                       </Button>
-                    )}
-                  </RoleGate>
+                      {t.statut !== 'CLOTUREE' && (
+                        <Button
+                          taille="petit"
+                          onClick={() => setConfirmation({ type: 'cloture', tontine: t })}
+                        >
+                          Clôturer
+                        </Button>
+                      )}
+                    </>
+                  )}
                   <RoleGate roles={[ROLES.ADMINISTRATEUR]}>
                     <Button
                       taille="petit"

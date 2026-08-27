@@ -2,8 +2,6 @@ import { useCallback, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { membresApi } from '../api/membres.js'
 import { tontinesApi } from '../api/tontines.js'
-import RoleGate from '../auth/RoleGate.jsx'
-import { useAuth } from '../auth/AuthContext.jsx'
 import useRequete from '../hooks/useRequete.js'
 import useRechercheTelephone from '../hooks/useRechercheTelephone.js'
 import { useToast } from '../components/Toast.jsx'
@@ -17,7 +15,7 @@ import Alert from '../components/Alert.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Modal, { ConfirmDialog } from '../components/Modal.jsx'
 import { formaterDate, formaterMontant } from '../utils/format.js'
-import { ROLES_ACTION, ROLES_GROUPE } from '../utils/constants.js'
+import { ROLES_GROUPE } from '../utils/constants.js'
 import Icone from '../components/Icone.jsx'
 
 /** Membres, filtrables par tontine. Inclut l'historique des cotisations. */
@@ -25,10 +23,14 @@ export default function Membres() {
   const [parametres, setParametres] = useSearchParams()
   const tontineId = parametres.get('tontineId') || ''
   const toast = useToast()
-  const { aRole } = useAuth()
-  const peutGerer = aRole(ROLES_ACTION)
 
   const { donnees: tontines } = useRequete(() => tontinesApi.lister(), [], { valeurInitiale: [] })
+  // Tontines dont l'utilisateur courant est gestionnaire (voir TontineResponse.administrateur) :
+  // seules celles-ci autorisent l'ajout ou le retrait d'un membre.
+  const tontinesGerees = (tontines ?? []).filter((t) => t.administrateur)
+  const peutGerer = tontinesGerees.length > 0
+  const gereLaTontine = (tontineId) =>
+    tontines?.some((t) => t.id === tontineId && t.administrateur) ?? false
 
   const charger = useCallback(
     () => membresApi.lister(tontineId ? { tontineId } : {}),
@@ -164,9 +166,9 @@ export default function Membres() {
         titre="Membres"
         sousTitre="Adhésions des utilisateurs aux tontines, avec leur ordre de passage."
         actions={
-          <RoleGate roles={ROLES_ACTION}>
+          peutGerer && (
             <Button variante="principal" onClick={ouvrirAjout}>{<><Icone nom="plus" taille={18} /> Ajouter un membre</>}</Button>
-          </RoleGate>
+          )
         }
       />
 
@@ -229,30 +231,32 @@ export default function Membres() {
                   <Button taille="petit" onClick={() => ouvrirHistorique(m)}>
                     Historique
                   </Button>
-                  <RoleGate roles={ROLES_ACTION}>
-                    {m.statut === 'ACTIF' ? (
+                  {gereLaTontine(m.tontineId) && (
+                    <>
+                      {m.statut === 'ACTIF' ? (
+                        <Button
+                          taille="petit"
+                          onClick={() => setConfirmation({ type: 'suspendre', membre: m })}
+                        >
+                          Suspendre
+                        </Button>
+                      ) : (
+                        <Button
+                          taille="petit"
+                          onClick={() => setConfirmation({ type: 'reactiver', membre: m })}
+                        >
+                          Réactiver
+                        </Button>
+                      )}
                       <Button
                         taille="petit"
-                        onClick={() => setConfirmation({ type: 'suspendre', membre: m })}
+                        variante="danger"
+                        onClick={() => setConfirmation({ type: 'retirer', membre: m })}
                       >
-                        Suspendre
+                        Retirer
                       </Button>
-                    ) : (
-                      <Button
-                        taille="petit"
-                        onClick={() => setConfirmation({ type: 'reactiver', membre: m })}
-                      >
-                        Réactiver
-                      </Button>
-                    )}
-                    <Button
-                      taille="petit"
-                      variante="danger"
-                      onClick={() => setConfirmation({ type: 'retirer', membre: m })}
-                    >
-                      Retirer
-                    </Button>
-                  </RoleGate>
+                    </>
+                  )}
                 </div>
               ),
             },
@@ -311,7 +315,7 @@ export default function Membres() {
             erreur={erreurFormulaire?.champs?.tontineId}
             options={[
               { valeur: '', libelle: '— Choisir une tontine —' },
-              ...(tontines ?? []).map((t) => ({ valeur: String(t.id), libelle: t.nom })),
+              ...tontinesGerees.map((t) => ({ valeur: String(t.id), libelle: t.nom })),
             ]}
             requis
           />

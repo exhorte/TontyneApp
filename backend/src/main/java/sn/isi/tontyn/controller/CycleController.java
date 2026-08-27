@@ -26,17 +26,27 @@ public class CycleController {
     }
 
     @GetMapping
-    public List<CycleResponse> lister(@RequestParam(required = false) Long tontineId) {
-        return (tontineId != null) ? cycleService.listerParTontine(tontineId)
-                                   : cycleService.lister();
+    @PreAuthorize("#tontineId == null or @secu.appartientTontine(#tontineId)")
+    public List<CycleResponse> lister(@RequestParam(required = false) Long tontineId,
+                                      @RequestParam(required = false) String statut) {
+        if (tontineId == null) {
+            return cycleService.lister();
+        }
+        // GET /api/cycles?tontineId=..&statut=EN_COURS : sert au frontend a
+        // resoudre automatiquement le cycle actif d'une tontine, sans que
+        // l'utilisateur ait a le choisir dans une liste.
+        return (statut != null) ? cycleService.listerParTontineEtStatut(tontineId, statut)
+                                : cycleService.listerParTontine(tontineId);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("@secu.appartientTontineDuCycle(#id)")
     public CycleResponse obtenir(@PathVariable Long id) {
         return cycleService.obtenir(id);
     }
 
     @GetMapping("/{id}/cotisations")
+    @PreAuthorize("@secu.appartientTontineDuCycle(#id)")
     public List<CotisationResponse> listerCotisations(@PathVariable Long id) {
         return cotisationService.listerParCycle(id);
     }

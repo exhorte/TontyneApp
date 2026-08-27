@@ -3,7 +3,8 @@ import { Link, useParams } from 'react-router-dom'
 import { cyclesApi } from '../api/cycles.js'
 import { membresApi } from '../api/membres.js'
 import { cotisationsApi } from '../api/cotisations.js'
-import RoleGate from '../auth/RoleGate.jsx'
+import { tontinesApi } from '../api/tontines.js'
+import { useAuth } from '../auth/AuthContext.jsx'
 import useRequete from '../hooks/useRequete.js'
 import { useToast } from '../components/Toast.jsx'
 import { normaliserErreur } from '../utils/errors.js'
@@ -17,27 +18,28 @@ import Loader from '../components/Loader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Modal, { ConfirmDialog } from '../components/Modal.jsx'
 import { formaterDate, formaterDateHeure, formaterMontant } from '../utils/format.js'
-import { ROLES_ACTION } from '../utils/constants.js'
 import Icone from '../components/Icone.jsx'
 
 /** Fiche d'un cycle : periode, beneficiaire et cotisations rattachees. */
 export default function CycleDetail() {
   const { id } = useParams()
   const toast = useToast()
+  const { utilisateurId } = useAuth()
 
   const chargerTout = useCallback(async () => {
     const cycle = await cyclesApi.obtenir(id)
-    const [cotisations, membres] = await Promise.all([
+    const [cotisations, membres, tontine] = await Promise.all([
       cyclesApi.listerCotisations(id),
       membresApi.lister({ tontineId: cycle.tontineId }),
+      tontinesApi.obtenir(cycle.tontineId),
     ])
-    return { cycle, cotisations, membres }
+    return { cycle, cotisations, membres, tontine }
   }, [id])
 
   const { donnees, chargement, erreur, recharger } = useRequete(chargerTout, [id])
 
   const [modaleCotisation, setModaleCotisation] = useState(false)
-  const [formulaire, setFormulaire] = useState({ membreId: '', montant: '' })
+  const [formulaire, setFormulaire] = useState({ montant: '' })
   const [erreurFormulaire, setErreurFormulaire] = useState(null)
   const [envoi, setEnvoi] = useState(false)
   const [confirmation, setConfirmation] = useState(false)
@@ -53,27 +55,36 @@ export default function CycleDetail() {
     )
   }
 
-  const { cycle, cotisations, membres } = donnees
+  const { cycle, cotisations, membres, tontine } = donnees
+  // Droits de gestion propres a la tontine de ce cycle (voir TontineResponse.administrateur).
+  const peutGerer = tontine.administrateur
 
   const membresActifs = membres.filter((m) => m.statut === 'ACTIF')
   const idsAyantCotise = new Set(cotisations.map((c) => c.membreId))
   const membresSansCotisation = membresActifs.filter((m) => !idsAyantCotise.has(m.id))
   const payees = cotisations.filter((c) => c.statut === 'PAYEE')
 
+  // Le membre ne se choisit plus dans une liste : c'est la fiche membre de
+  // l'utilisateur connecte pour la tontine de ce cycle, identifiee automatiquement.
+  const monAdhesion = membres.find((m) => m.utilisateurId === utilisateurId) ?? null
+  const dejaCotise = monAdhesion ? idsAyantCotise.has(monAdhesion.id) : false
+  const peutCotiser = Boolean(monAdhesion) && monAdhesion.statut === 'ACTIF' && !dejaCotise
+
   const enregistrerCotisation = async (evenement) => {
     evenement.preventDefault()
+    if (!peutCotiser) return
     setErreurFormulaire(null)
     setEnvoi(true)
     try {
       await cotisationsApi.creer({
         cycleId: Number(id),
-        membreId: Number(formulaire.membreId),
+        membreId: monAdhesion.id,
         // Vide = montant de cotisation de la tontine (valeur par defaut du backend).
         montant: formulaire.montant ? Number(formulaire.montant) : null,
       })
       toast.succes('Cotisation enregistrée. Elle peut désormais être réglée.')
       setModaleCotisation(false)
-      setFormulaire({ membreId: '', montant: '' })
+      setFormulaire({ montant: '' })
       recharger()
     } catch (e) {
       setErreurFormulaire(normaliserErreur(e))
@@ -114,16 +125,14 @@ export default function CycleDetail() {
             <Button
               variante="principal"
               onClick={() => setModaleCotisation(true)}
-              disabled={cycle.statut === 'CLOTURE'}
+              disabled={cycle.statut === 'CLOTURE' || !peutCotiser}
               title={cycle.statut === 'CLOTURE' ? 'Le cycle est clôturé.' : undefined}
             >
               {<><Icone nom="plus" taille={18} /> Enregistrer une cotisation</>}
             </Button>
-            <RoleGate roles={ROLES_ACTION}>
-              {cycle.statut !== 'CLOTURE' && (
-                <Button onClick={() => setConfirmation(true)}>Clôturer le cycle</Button>
-              )}
-            </RoleGate>
+            {peutGerer && cycle.statut !== 'CLOTURE' && (
+              <Button onClick={() => setConfirmation(true)}>Clôturer le cycle</Button>
+            )}
           </>
         }
       />
@@ -213,7 +222,7 @@ export default function CycleDetail() {
               titre="Aucune cotisation"
               texte="Enregistrez les cotisations des membres pour ce cycle."
               action={
-                cycle.statut !== 'CLOTURE' ? (
+                cycle.statut !== 'CLOTURE' && peutCotiser ? (
                   <Button variante="principal" onClick={() => setModaleCotisation(true)}>
                     {<><Icone nom="plus" taille={18} /> Enregistrer une cotisation</>}
                   </Button>
@@ -236,7 +245,7 @@ export default function CycleDetail() {
               variante="principal"
               onClick={enregistrerCotisation}
               chargement={envoi}
-              disabled={!formulaire.membreId}
+              disabled={!peutCotiser}
             >
               Enregistrer
             </Button>
@@ -250,25 +259,22 @@ export default function CycleDetail() {
             </Alert>
           )}
 
-          <Field
-            label="Membre"
-            nom="membreId"
-            type="select"
-            valeur={formulaire.membreId}
-            onChange={(e) => setFormulaire((f) => ({ ...f, membreId: e.target.value }))}
-            erreur={erreurFormulaire?.champs?.membreId}
-            options={[
-              { valeur: '', libelle: '— Choisir un membre —' },
-              ...membresActifs.map((m) => ({
-                valeur: String(m.id),
-                libelle: idsAyantCotise.has(m.id)
-                  ? `${m.nomComplet} (a déjà cotisé)`
-                  : m.nomComplet,
-              })),
-            ]}
-            aide="Seuls les membres actifs de la tontine peuvent cotiser."
-            requis
-          />
+          <InfoItem cle="Membre">
+            {monAdhesion ? monAdhesion.nomComplet : '—'}
+          </InfoItem>
+
+          {!monAdhesion && (
+            <Alert type="attention">
+              Vous n'êtes pas membre de cette tontine : seul un de ses membres peut y
+              enregistrer une cotisation, pour son propre compte.
+            </Alert>
+          )}
+          {monAdhesion && monAdhesion.statut !== 'ACTIF' && (
+            <Alert type="attention">Votre adhésion est suspendue : vous ne pouvez pas cotiser.</Alert>
+          )}
+          {monAdhesion && dejaCotise && (
+            <Alert type="attention">Vous avez déjà enregistré une cotisation sur ce cycle.</Alert>
+          )}
 
           <Field
             label="Montant (FCFA)"

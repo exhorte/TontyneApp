@@ -14,13 +14,16 @@ public record PaiementResponse(Long id,
                                Long cotisationId,
                                Long membreId,
                                String membreNom,
+                               Long tontineId,
+                               String tontineNom,
                                Long recuId) {
 
     public static PaiementResponse from(Paiement p, Long recuId) {
         var m = p.getCotisation().getMembre();
+        var t = p.getCotisation().getCycle().getTontine();
         return new PaiementResponse(p.getId(), p.getMontant(), p.getDate(), p.getMethode(),
                 p.getReference(), p.getStatut(), p.getCotisation().getId(),
                 m.getId(), m.getUtilisateur().getPrenom() + " " + m.getUtilisateur().getNom(),
-                recuId);
+                t.getId(), t.getNom(), recuId);
     }
 }

@@ -4,11 +4,11 @@ import { cotisationsApi } from '../api/cotisations.js'
 import { cyclesApi } from '../api/cycles.js'
 import { tontinesApi } from '../api/tontines.js'
 import { membresApi } from '../api/membres.js'
-import RoleGate from '../auth/RoleGate.jsx'
+import { useAuth } from '../auth/AuthContext.jsx'
 import useRequete from '../hooks/useRequete.js'
 import { useToast } from '../components/Toast.jsx'
 import { normaliserErreur } from '../utils/errors.js'
-import PageHeader from '../components/PageHeader.jsx'
+import PageHeader, { InfoItem } from '../components/PageHeader.jsx'
 import Table from '../components/Table.jsx'
 import Badge from '../components/Badge.jsx'
 import Button from '../components/Button.jsx'
@@ -17,7 +17,6 @@ import Alert from '../components/Alert.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Modal, { ConfirmDialog } from '../components/Modal.jsx'
 import { formaterDateHeure, formaterMontant } from '../utils/format.js'
-import { ROLES_ACTION } from '../utils/constants.js'
 import Icone from '../components/Icone.jsx'
 
 /**
@@ -30,8 +29,12 @@ export default function Cotisations() {
   const cycleId = parametres.get('cycleId') || ''
   const membreId = parametres.get('membreId') || ''
   const toast = useToast()
+  const { utilisateurId } = useAuth()
 
   const { donnees: tontines } = useRequete(() => tontinesApi.lister(), [], { valeurInitiale: [] })
+  // Une cotisation "Supprimer" reste reservee au gestionnaire de la tontine concernee
+  // (voir TontineResponse.administrateur).
+  const gereLaTontine = (id) => tontines?.some((t) => t.id === id && t.administrateur) ?? false
 
   // Le backend applique un seul filtre, dans l'ordre cycleId > membreId > tontineId.
   const charger = useCallback(() => {
@@ -59,35 +62,50 @@ export default function Cotisations() {
 
   // --- Enregistrement d'une cotisation ------------------------------------
   const [modale, setModale] = useState(false)
-  const [formulaire, setFormulaire] = useState({ tontineId: '', cycleId: '', membreId: '', montant: '' })
+  const [formulaire, setFormulaire] = useState({ tontineId: '', montant: '' })
   const [erreurFormulaire, setErreurFormulaire] = useState(null)
   const [envoi, setEnvoi] = useState(false)
 
-  const { donnees: cyclesTontine } = useRequete(
-    () => (formulaire.tontineId ? cyclesApi.lister({ tontineId: formulaire.tontineId }) : []),
+  // Le cycle et le membre ne se choisissent plus dans une liste : une fois la
+  // tontine selectionnee, la plateforme les identifie elle-meme — le cycle
+  // actif de la tontine, et la fiche membre de l'utilisateur connecte pour
+  // cette tontine — et les affiche figes.
+  const { donnees: cycleActif, chargement: chargementCycle } = useRequete(
+    () =>
+      formulaire.tontineId
+        ? cyclesApi
+            .lister({ tontineId: formulaire.tontineId, statut: 'EN_COURS' })
+            .then((c) => c[0] ?? null)
+        : null,
     [formulaire.tontineId],
-    { valeurInitiale: [], actif: Boolean(formulaire.tontineId) },
+    { valeurInitiale: null, actif: Boolean(formulaire.tontineId) },
   )
-  const { donnees: membresTontine } = useRequete(
-    () => (formulaire.tontineId ? membresApi.lister({ tontineId: formulaire.tontineId }) : []),
-    [formulaire.tontineId],
-    { valeurInitiale: [], actif: Boolean(formulaire.tontineId) },
+  const { donnees: monAdhesion, chargement: chargementAdhesion } = useRequete(
+    () =>
+      formulaire.tontineId && utilisateurId
+        ? membresApi
+            .lister({ tontineId: formulaire.tontineId, utilisateurId })
+            .then((m) => m[0] ?? null)
+        : null,
+    [formulaire.tontineId, utilisateurId],
+    { valeurInitiale: null, actif: Boolean(formulaire.tontineId && utilisateurId) },
   )
 
   const ouvrirCreation = () => {
-    setFormulaire({ tontineId: tontineId || '', cycleId: '', membreId: '', montant: '' })
+    setFormulaire({ tontineId: tontineId || '', montant: '' })
     setErreurFormulaire(null)
     setModale(true)
   }
 
   const enregistrer = async (evenement) => {
     evenement.preventDefault()
+    if (!cycleActif || !monAdhesion) return
     setErreurFormulaire(null)
     setEnvoi(true)
     try {
       const cotisation = await cotisationsApi.creer({
-        cycleId: Number(formulaire.cycleId),
-        membreId: Number(formulaire.membreId),
+        cycleId: cycleActif.id,
+        membreId: monAdhesion.id,
         montant: formulaire.montant ? Number(formulaire.montant) : null,
       })
       toast.succes(
@@ -207,7 +225,7 @@ export default function Cotisations() {
                       Payer
                     </Link>
                   )}
-                  <RoleGate roles={ROLES_ACTION}>
+                  {gereLaTontine(c.tontineId) && (
                     <Button
                       taille="petit"
                       variante="danger"
@@ -215,7 +233,7 @@ export default function Cotisations() {
                     >
                       Supprimer
                     </Button>
-                  </RoleGate>
+                  )}
                 </div>
               ),
             },
@@ -247,7 +265,7 @@ export default function Cotisations() {
               variante="principal"
               onClick={enregistrer}
               chargement={envoi}
-              disabled={!formulaire.cycleId || !formulaire.membreId}
+              disabled={!cycleActif || !monAdhesion}
             >
               Enregistrer
             </Button>
@@ -266,54 +284,47 @@ export default function Cotisations() {
             nom="tontineIdFormulaire"
             type="select"
             valeur={formulaire.tontineId}
-            onChange={(e) =>
-              setFormulaire({ tontineId: e.target.value, cycleId: '', membreId: '', montant: '' })
-            }
+            onChange={(e) => setFormulaire({ tontineId: e.target.value, montant: '' })}
             options={[
               { valeur: '', libelle: '— Choisir une tontine —' },
               ...(tontines ?? []).map((t) => ({ valeur: String(t.id), libelle: t.nom })),
             ]}
-            aide="Sert uniquement à filtrer les cycles et les membres ci-dessous."
             requis
           />
 
-          <Field
-            label="Cycle"
-            nom="cycleId"
-            type="select"
-            valeur={formulaire.cycleId}
-            onChange={(e) => setFormulaire((f) => ({ ...f, cycleId: e.target.value }))}
-            erreur={erreurFormulaire?.champs?.cycleId}
-            options={[
-              { valeur: '', libelle: '— Choisir un cycle —' },
-              ...(cyclesTontine ?? [])
-                .filter((c) => c.statut !== 'CLOTURE')
-                .map((c) => ({
-                  valeur: String(c.id),
-                  libelle: `Cycle n°${c.numero} (${c.statut === 'EN_COURS' ? 'en cours' : 'planifié'})`,
-                })),
-            ]}
-            aide="Un cycle clôturé n'accepte plus de cotisation."
-            disabled={!formulaire.tontineId}
-            requis
-          />
+          {formulaire.tontineId && (
+            <>
+              <div className="liste-infos">
+                <InfoItem cle="Cycle">
+                  {chargementCycle
+                    ? 'Recherche du cycle en cours…'
+                    : cycleActif
+                      ? `Cycle n°${cycleActif.numero} (en cours)`
+                      : '—'}
+                </InfoItem>
+                <InfoItem cle="Membre">
+                  {chargementAdhesion
+                    ? 'Recherche de votre adhésion…'
+                    : monAdhesion
+                      ? monAdhesion.nomComplet
+                      : '—'}
+                </InfoItem>
+              </div>
 
-          <Field
-            label="Membre"
-            nom="membreId"
-            type="select"
-            valeur={formulaire.membreId}
-            onChange={(e) => setFormulaire((f) => ({ ...f, membreId: e.target.value }))}
-            erreur={erreurFormulaire?.champs?.membreId}
-            options={[
-              { valeur: '', libelle: '— Choisir un membre —' },
-              ...(membresTontine ?? [])
-                .filter((m) => m.statut === 'ACTIF')
-                .map((m) => ({ valeur: String(m.id), libelle: m.nomComplet })),
-            ]}
-            disabled={!formulaire.tontineId}
-            requis
-          />
+              {!chargementCycle && !cycleActif && (
+                <Alert type="attention">
+                  Aucun cycle en cours pour cette tontine : impossible d'enregistrer une
+                  cotisation pour le moment.
+                </Alert>
+              )}
+              {!chargementAdhesion && !monAdhesion && (
+                <Alert type="attention">
+                  Vous n'êtes pas membre de cette tontine : seul un de ses membres peut y
+                  enregistrer une cotisation, pour son propre compte.
+                </Alert>
+              )}
+            </>
+          )}
 
           <Field
             label="Montant (FCFA)"

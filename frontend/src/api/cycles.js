@@ -6,7 +6,7 @@ import client from './client.js'
  *   tontineNom, beneficiaireId, beneficiaireNom, montantCollecte }
  */
 export const cyclesApi = {
-  /** Filtre accepte : { tontineId }. */
+  /** Filtres acceptes : { tontineId, statut }. `statut` n'a d'effet qu'avec `tontineId`. */
   lister: (params = {}) => client.get('/cycles', { params }).then((r) => r.data),
   obtenir: (id) => client.get(`/cycles/${id}`).then((r) => r.data),
   listerCotisations: (id) => client.get(`/cycles/${id}/cotisations`).then((r) => r.data),

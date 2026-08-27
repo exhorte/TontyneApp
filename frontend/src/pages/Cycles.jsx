@@ -3,7 +3,6 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { cyclesApi } from '../api/cycles.js'
 import { tontinesApi } from '../api/tontines.js'
 import { membresApi } from '../api/membres.js'
-import RoleGate from '../auth/RoleGate.jsx'
 import useRequete from '../hooks/useRequete.js'
 import { useToast } from '../components/Toast.jsx'
 import { normaliserErreur } from '../utils/errors.js'
@@ -16,7 +15,7 @@ import Alert from '../components/Alert.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Modal, { ConfirmDialog } from '../components/Modal.jsx'
 import { dateDuJourIso, formaterDate, formaterMontant } from '../utils/format.js'
-import { ROLES_ACTION, STATUTS_CYCLE } from '../utils/constants.js'
+import { STATUTS_CYCLE } from '../utils/constants.js'
 import Icone from '../components/Icone.jsx'
 
 const FORMULAIRE_VIDE = {
@@ -35,6 +34,11 @@ export default function Cycles() {
   const toast = useToast()
 
   const { donnees: tontines } = useRequete(() => tontinesApi.lister(), [], { valeurInitiale: [] })
+  // Tontines dont l'utilisateur courant est gestionnaire (voir TontineResponse.administrateur).
+  const tontinesGerees = (tontines ?? []).filter((t) => t.administrateur)
+  const peutGerer = tontinesGerees.length > 0
+  const gereLaTontine = (tontineId) =>
+    tontines?.some((t) => t.id === tontineId && t.administrateur) ?? false
 
   const charger = useCallback(
     () => cyclesApi.lister(tontineId ? { tontineId } : {}),
@@ -148,9 +152,9 @@ export default function Cycles() {
         titre="Cycles"
         sousTitre="Chaque cycle correspond au tour d'un membre bénéficiaire."
         actions={
-          <RoleGate roles={ROLES_ACTION}>
+          peutGerer && (
             <Button variante="principal" onClick={ouvrirCreation}>{<><Icone nom="plus" taille={18} /> Nouveau cycle</>}</Button>
-          </RoleGate>
+          )
         }
       />
 
@@ -215,24 +219,26 @@ export default function Cycles() {
                   <Link className="btn btn--secondaire btn--petit" to={`/cycles/${c.id}`}>
                     Détail
                   </Link>
-                  <RoleGate roles={ROLES_ACTION}>
-                    <Button taille="petit" onClick={() => ouvrirEdition(c)}>Modifier</Button>
-                    {c.statut !== 'CLOTURE' && (
+                  {gereLaTontine(c.tontineId) && (
+                    <>
+                      <Button taille="petit" onClick={() => ouvrirEdition(c)}>Modifier</Button>
+                      {c.statut !== 'CLOTURE' && (
+                        <Button
+                          taille="petit"
+                          onClick={() => setConfirmation({ type: 'cloturer', cycle: c })}
+                        >
+                          Clôturer
+                        </Button>
+                      )}
                       <Button
                         taille="petit"
-                        onClick={() => setConfirmation({ type: 'cloturer', cycle: c })}
+                        variante="danger"
+                        onClick={() => setConfirmation({ type: 'supprimer', cycle: c })}
                       >
-                        Clôturer
+                        Supprimer
                       </Button>
-                    )}
-                    <Button
-                      taille="petit"
-                      variante="danger"
-                      onClick={() => setConfirmation({ type: 'supprimer', cycle: c })}
-                    >
-                      Supprimer
-                    </Button>
-                  </RoleGate>
+                    </>
+                  )}
                 </div>
               ),
             },
@@ -281,7 +287,7 @@ export default function Cycles() {
             erreur={erreurFormulaire?.champs?.tontineId}
             options={[
               { valeur: '', libelle: '— Choisir une tontine —' },
-              ...(tontines ?? []).map((t) => ({ valeur: String(t.id), libelle: t.nom })),
+              ...tontinesGerees.map((t) => ({ valeur: String(t.id), libelle: t.nom })),
             ]}
             disabled={modale?.mode === 'edition'}
             requis
