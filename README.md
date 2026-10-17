@@ -1,22 +1,22 @@
 # Tontyn
 
-Plateforme web et mobile sécurisée de gestion des tontines communautaires.
-Architecture 3-tiers : **React / Flutter** (présentation) · **Spring Boot** (application) · **PostgreSQL** (données).
+Secure web and mobile platform for managing community savings circles (tontines).
+3-tier architecture: **React / Flutter** (presentation) · **Spring Boot** (application) · **PostgreSQL** (data).
 
-Voir `PLAN_DEVELOPPEMENT.md` pour le découpage en modules et le backlog SCRUM.
+See `PLAN_DEVELOPPEMENT.md` (in French) for the module breakdown and the SCRUM backlog.
 
-## Démarrage rapide
+## Quick start
 
-### 1. Base de données (Docker)
+### 1. Database (Docker)
 ```bash
-docker compose up -d db      # PostgreSQL sur localhost:5432
-# pgAdmin optionnel : http://localhost:5050
+docker compose up -d db      # PostgreSQL on localhost:5432
+# optional pgAdmin: http://localhost:5050
 ```
 
 ### 2. Backend (Spring Boot)
 ```bash
 cd backend
-./mvnw spring-boot:run       # profil 'dev' par défaut, API sur http://localhost:8080
+./mvnw spring-boot:run       # 'dev' profile by default, API on http://localhost:8080
 ```
 
 ### 3. Frontend (React)
@@ -33,7 +33,7 @@ flutter pub get
 flutter run
 ```
 
-## Arborescence
-- `backend/`  — API REST, entités JPA, sécurité JWT + 2FA
-- `frontend/` — application web React (Vite)
-- `mobile/`   — application mobile Flutter
+## Project layout
+- `backend/`  — REST API, JPA entities, JWT + 2FA security
+- `frontend/` — React web application (Vite)
+- `mobile/`   — Flutter mobile application
